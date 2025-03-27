@@ -1,6 +1,8 @@
 import random as rnd
 import math
-import numpy as np
+import time
+import tracemalloc as tm
+from functools import wraps
 
 def random_coeficients(n: int) -> list:
     """
@@ -73,3 +75,24 @@ def error(coeficients: list) -> float:
     """
     global data
     return sum([(f(x, coeficients) - y) ** 2 for x, y in data])
+
+def measure(func):
+    """
+    Mide el tiempo de ejecución de una función.
+    Args:
+        func (function): Función a medir.
+    Returns:
+        function: Función decorada.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        tm.start()  # Inicia el rastreo de memoria
+        start_time = time.perf_counter()  # Tiempo de inicio
+
+        result = func(*args, **kwargs)  # Ejecuta la función
+
+        end_time = time.perf_counter()  # Tiempo de fin
+        peak = tm.get_traced_memory()[1]  # Obtiene el uso de memoria
+        tm.stop()
+        return {'solution': result, 'time': end_time - start_time, 'memory': peak}
+    return wrapper
