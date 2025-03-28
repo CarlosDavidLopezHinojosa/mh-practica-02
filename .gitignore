@@ -1,1 +1,4 @@
 /venv
+coef.txt
+operators.py
+__pycache__/
