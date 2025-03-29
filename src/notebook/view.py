@@ -1,7 +1,9 @@
 import streamlit as st
 import operators as ops
-import parallel as prl
+import genetic as gnc
 import utils
+
+import pandas as pd
 
 
 # Título de la aplicación
@@ -11,7 +13,20 @@ st.title("Optimización Genética con Modelo de Islas")
 st.markdown("""
 Esta aplicación utiliza un algoritmo genético basado en el modelo de islas para resolver problemas de optimización.
 El modelo divide la población en subpoblaciones (islas) que evolucionan de forma independiente y ocasionalmente migran individuos entre ellas.
+            
+Queremos optimizar los coeficientes de un modelo de regresión lineal para minimizar el error cuadrático medio (MSE) en un conjunto de datos.
+            
+El objetivo es encontrar los coeficientes que mejor se ajusten a los datos, utilizando un enfoque evolutivo.
+
+La función que queremos optimizar es la siguiente:
+$$
+f(x) = e^{a} + bx + cx^2 + dx^3 + ex^4 + fx^5 + gx^6 + hx^7
+$$
+            
+Y debemos ajustar el modelo a los siguientes datos:
 """)
+frame = pd.DataFrame(utils.get_data(), columns=["x", "y"])
+st.dataframe(frame)
 
 # Sección: Selección
 st.header("Selección")
@@ -24,9 +39,7 @@ st.markdown("""
 """)
 st.code("""
 # Selección: Torneo binario
-def selection_tournament(population, fitness, k=2):
-    tournament = random.sample(list(population), k)
-    return min(tournament, key=fitness)
+
 """, language="python")
 
 # Sección: Cruce
@@ -40,9 +53,7 @@ st.markdown("""
 """)
 st.code("""
 # Cruce: Cruce aritmético
-def crossing_arithmetic(parent1, parent2):
-    alpha = random.random()
-    return [alpha * p1 + (1 - alpha) * p2 for p1, p2 in zip(parent1, parent2)]
+
 """, language="python")
 
 # Sección: Mutación
@@ -56,11 +67,7 @@ st.markdown("""
 """)
 st.code("""
 # Mutación: Mutación gaussiana
-def mutation_gaussian(individual, mutation_rate=0.1, sigma=0.1):
-    return [
-        gene + random.gauss(0, sigma) if random.random() < mutation_rate else gene
-        for gene in individual
-    ]
+
 """, language="python")
 
 # Sección: Reemplazo
@@ -74,11 +81,8 @@ st.markdown("""
 """)
 st.code("""
 # Reemplazo: Elitismo
-def replacement_elitism(population, new_population):
-    population.sort(key=lambda x: x[1])
-    new_population.sort(key=lambda x: x[1])
-    for i in range(len(new_population)):
-        population[i] = new_population[i]
+
+
 """, language="python")
 
 # Sección: Algoritmo Genético (Optimización)
@@ -110,7 +114,7 @@ def genetic_function_optimization(islands: list[list], island_id: int,
 
         replace(island, new_island)
         if generation % manager_ratio == 0:
-            prl.migrate(islands, island, island_id, fitness, lock)
+            gnc.migrate(islands, island, island_id, fitness, lock)
 
     solution = min(island, key=fitness)
     with lock:
@@ -118,10 +122,10 @@ def genetic_function_optimization(islands: list[list], island_id: int,
 """, language="python")
 
 # Parámetros de entrada
-st.sidebar.header("Parámetros del Algoritmo")
-num_islands = st.sidebar.number_input("Número de Islas", min_value=1, max_value=20, value=5, step=1)
-pop_size = st.sidebar.number_input("Tamaño de la Población por Isla", min_value=1, max_value=100, value=20, step=1)
-generations = st.sidebar.number_input("Número de Generaciones", min_value=1, max_value=1000, value=100, step=10)
+st.header("Parámetros del Algoritmo")
+num_islands = st.number_input("Número de Islas", min_value=1, max_value=20, value=5, step=1)
+pop_size = st.number_input("Tamaño de la Población por Isla", min_value=1, max_value=100, value=20, step=1)
+generations = st.number_input("Número de Generaciones", min_value=1, max_value=1000, value=100, step=10)
 num_coef = 8
 
 # Botón para ejecutar el algoritmo
@@ -129,7 +133,7 @@ if st.button("Ejecutar Algoritmo"):
     with st.spinner("Ejecutando el modelo de islas..."):
 
         if __name__ == '__main__':
-            result = prl.island_optimization(
+            result = gnc.island_optimization(
             num_islands, pop_size, generations, num_coef,
             ops.selection_tournament, 
             ops.crossing_arithmetic, 
