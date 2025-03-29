@@ -4,6 +4,7 @@ import genetic as gnc
 import utils
 
 import pandas as pd
+import plot as plt
 
 
 # Título de la aplicación
@@ -98,7 +99,7 @@ def genetic_function_optimization(islands: list[list], island_id: int,
                                   mutate: callable, replace:callable, 
                                   fitness:callable, lock: object, 
                                   results: object) -> tuple:
-    manager_ratio = utils.migration_ratio(generations)
+    migration_ratio = utils.migration_ratio(generations)
     island = islands[island_id]
 
     for generation in range(generations):
@@ -113,7 +114,7 @@ def genetic_function_optimization(islands: list[list], island_id: int,
             new_island.extend([ch1, ch2])
 
         replace(island, new_island)
-        if generation % manager_ratio == 0:
+        if generation % migration_ratio == 0:
             gnc.migrate(islands, island, island_id, fitness, lock)
 
     solution = min(island, key=fitness)
@@ -123,10 +124,12 @@ def genetic_function_optimization(islands: list[list], island_id: int,
 
 # Parámetros de entrada
 st.header("Parámetros del Algoritmo")
-num_islands = st.number_input("Número de Islas", min_value=1, max_value=20, value=5, step=1)
-pop_size = st.number_input("Tamaño de la Población por Isla", min_value=1, max_value=100, value=20, step=1)
+num_islands = st.number_input("Número de Islas", min_value=1, max_value=10, value=5, step=1)
+pop_size = st.number_input("Tamaño de la Población por Isla", min_value=1, max_value=1000, value=20, step=1)
 generations = st.number_input("Número de Generaciones", min_value=1, max_value=1000, value=100, step=10)
 num_coef = 8
+
+
 
 # Botón para ejecutar el algoritmo
 if st.button("Ejecutar Algoritmo"):
@@ -140,7 +143,12 @@ if st.button("Ejecutar Algoritmo"):
             ops.mutation_gaussian, 
             ops.replacement_elitism, 
             utils.fitness
-        )
+            )
         st.success("Optimización completada.")
         st.subheader("Resultado")
         st.write(result)
+        data = utils.get_data()
+        plt.plot_predictions(predictions=[utils.f(x, result['solution']['coefficients']) for x, _ in data], actuals=[y for _, y in data])
+        
+        st.subheader("La función predicha es:")
+        plt.plot_function(result['solution']['coefficients'])

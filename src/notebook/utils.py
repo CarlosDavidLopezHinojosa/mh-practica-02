@@ -105,6 +105,7 @@ def error(coeficients: list, data: list) -> float:
     return sum([(f(x, coeficients) - y) ** 2 for x, y in data])
 
 def fitness(coeficients: list):
+
     data = get_data()
     return error(coeficients, data)
 

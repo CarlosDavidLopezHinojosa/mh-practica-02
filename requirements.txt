@@ -3,3 +3,4 @@ scipy
 scikit-posthocs
 multiprocess
 streamlit
+matplotlib

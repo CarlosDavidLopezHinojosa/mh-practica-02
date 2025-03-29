@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import random as rnd
 import math 
+from utils import measure
 
 def migrate(islands, island, island_id, fitness, lock):
     """
@@ -86,5 +87,6 @@ def parallelize(evolver, num_islands, pop_size, generations, num_coef, select, c
 
     return min(list(results), key=lambda x : x['error'])
 
+@measure
 def island_optimization(num_islands, pop_size, generations, num_coef, select, cross, mutate, replace, fitness):
     return parallelize(genetic_function_optimization, num_islands, pop_size, generations, num_coef, select, cross, mutate, replace, fitness)
