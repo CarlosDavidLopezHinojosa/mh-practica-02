@@ -1,6 +1,6 @@
 numpy
 scipy
 scikit-posthocs
-multiprocess
 streamlit
 matplotlib
+watchdog
