@@ -44,7 +44,6 @@ metaheuristicas/mh-practica-02/
 │   │   │   ├── utils.py            # Funciones auxiliares
 │   │   │   ├── stats.py            # Pruebas estadísticas
 │   │   ├── view.py                 # Interfaz de usuario con Streamlit
-│   │   ├── plot.py                 # Gráficas con Matplotlib
 │   ├── __init__.py
 ├── requirements.txt                # Dependencias del proyecto
 ├── start.sh                        # Script para iniciar la aplicación
