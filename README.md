@@ -24,26 +24,32 @@ pip install -r requirements.txt
 - `scikit-posthocs`
 - `streamlit`
 - `matplotlib`
+- `watchdog`
 
 ## Estructura del Proyecto
 
 ```
-src/
-├── main/
-│   ├── algorithms/
-│   │   ├── genetic.py          # Implementación del modelo de islas
-│   │   ├── regression.py       # Ajuste de regresión polinómica
-│   ├── functions/
-│   │   ├── selection.py        # Métodos de selección
-│   │   ├── crossing.py         # Métodos de cruce
-│   │   ├── mutation.py         # Métodos de mutación
-│   │   ├── replacement.py      # Métodos de reemplazo
-│   ├── tools/
-│   │   ├── utils.py            # Funciones auxiliares
-│   ├── view.py                 # Interfaz de usuario con Streamlit
-├── requirements.txt            # Dependencias del proyecto
-├── README.md                   # Documentación del proyecto
-└── .gitignore                  # Archivos ignorados por Git
+metaheuristicas/mh-practica-02/
+├── src/
+│   ├── main/
+│   │   ├── algorithms/
+│   │   │   ├── genetic.py          # Implementación del modelo de islas
+│   │   │   ├── regression.py       # Ajuste de regresión polinómica
+│   │   ├── functions/
+│   │   │   ├── selection.py        # Métodos de selección
+│   │   │   ├── crossing.py         # Métodos de cruce
+│   │   │   ├── mutation.py         # Métodos de mutación
+│   │   │   ├── replacement.py      # Métodos de reemplazo
+│   │   ├── tools/
+│   │   │   ├── utils.py            # Funciones auxiliares
+│   │   │   ├── stats.py            # Pruebas estadísticas
+│   │   ├── view.py                 # Interfaz de usuario con Streamlit
+│   │   ├── plot.py                 # Gráficas con Matplotlib
+│   ├── __init__.py
+├── requirements.txt                # Dependencias del proyecto
+├── start.sh                        # Script para iniciar la aplicación
+├── .gitignore                      # Archivos ignorados por Git
+└── README.md                       # Documentación del proyecto
 ```
 
 ## Uso
@@ -53,8 +59,10 @@ src/
 Para iniciar la interfaz de usuario, ejecuta el siguiente comando en la terminal:
 
 ```bash
-streamlit run src/main/view.py
+bash start.sh
 ```
+
+Esto configurará un entorno virtual, instalará las dependencias y ejecutará la aplicación en Streamlit.
 
 ### Configuración del Algoritmo
 
@@ -82,15 +90,3 @@ Puedes ejecutar un modelo de regresión lineal para comparar su rendimiento con 
 ## Advertencia
 
 El algoritmo genético puede ser intensivo en recursos. Configura los parámetros con cuidado para evitar un uso excesivo de memoria o tiempo de ejecución prolongado.
-
-## Contribuciones
-
-Si deseas contribuir a este proyecto, por favor:
-
-1. Haz un fork del repositorio.
-2. Crea una rama para tus cambios: `git checkout -b feature/nueva-funcionalidad`.
-3. Realiza un pull request con tus modificaciones.
-
-## Licencia
-
-Este proyecto se distribuye bajo la licencia MIT. Consulta el archivo `LICENSE` para más detalles.
