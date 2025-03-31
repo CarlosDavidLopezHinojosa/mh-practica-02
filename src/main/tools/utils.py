@@ -1,34 +1,33 @@
 import time
 import tracemalloc as tm
-import random as rnd
+import numpy as np
 
 from functools import wraps
-from math import exp, log, sqrt
 
-def random_coeficients(n: int) -> list:
+def coeficients(num_coefs: int) -> np.array:
     """
     Genera un array de coeficientes aleatorios.
     
     Args:
-        n (int): Número de coeficientes a generar.
+        num_coefs (int): Número de coeficientes a generar.
     
     Returns:
-        list: Array de tamaño `n` con valores aleatorios entre 0 y 1.
+        np.array: Array de tamaño `n` con valores aleatorios entre 0 y 1.
     """
-    return [rnd.random() for _ in range(n)]
+    return np.random.random(num_coefs)
 
-def initial_population(pop_size: int, n: int) -> list:
+def population(pop_size: int, num_coefs: int) -> np.array:
     """
     Genera una población inicial de individuos con coeficientes aleatorios.
     
     Args:
         pop_size (int): Tamaño de la población (número de individuos).
-        n (int): Número de coeficientes por individuo.
+        num_coefs (int): Número de coeficientes por individuo.
     
     Returns:
-        list: Matriz de tamaño `(pop_size, n)` con coeficientes aleatorios.
+        np.array: Matriz de tamaño `(pop_size, n)` con coeficientes aleatorios.
     """
-    return [random_coeficients(n) for _ in range(pop_size)]
+    return np.random.random((pop_size, num_coefs))
 
 def create_islands(num_island, pop_size, num_coefs):
     """
@@ -40,11 +39,11 @@ def create_islands(num_island, pop_size, num_coefs):
         num_coefs (int): Número de coeficientes por individuo.
     
     Returns:
-        list: Lista de poblaciones para cada isla.
+        np.array: Lista de poblaciones para cada isla.
     """
-    return [initial_population(pop_size, num_coefs) for _ in range(num_island)]
+    return np.random.random((num_island, pop_size, num_coefs))
 
-def get_data(lower: int = 0, upper: int = 15) -> list:
+def data(compact: bool = False, lower: int = 0, upper: int = 15) -> np.array:
     """
     Obtiene un subconjunto de datos de prueba en el rango especificado.
     
@@ -53,9 +52,9 @@ def get_data(lower: int = 0, upper: int = 15) -> list:
         upper (int, opcional): Índice superior del subconjunto. Por defecto, 15.
     
     Returns:
-        list: Matriz de datos en formato `[x, y]` con valores en el rango `[lower:upper]`.
+        np.array: Matriz de datos en formato `[x, y]` con valores en el rango `[lower:upper]`.
     """
-    return [
+    data = np.array([
         [0, 3.490342957],
         [0.1, 3.649406057],
         [0.2, 3.850310157],
@@ -71,9 +70,18 @@ def get_data(lower: int = 0, upper: int = 15) -> list:
         [-0.82, 0.0372406176],
         [-1.98, -0.2501897336],
         [-1.99, 0.4626335969]
-    ][lower:upper]
+    ])
 
-def f(x: float, coeficients: list) -> float:
+    np.random.shuffle(data)
+
+    if compact:
+        return data[lower:upper]
+    
+    x = data[lower:upper, 0]
+    y = data[lower:upper, 1]
+    return x, y
+
+def f(x: float, coeficients: np.array) -> float:
     """
     Calcula el valor de una función basada en coeficientes polinomiales.
     
@@ -82,32 +90,32 @@ def f(x: float, coeficients: list) -> float:
     
     Args:
         x (float): Valor de entrada.
-        coeficients (list): Lista de coeficientes del modelo.
+        coeficients (np.array): Lista de coeficientes del modelo.
     
     Returns:
         float: Resultado de la función para el valor `x` dado.
     """
-    return exp(coeficients[0]) + sum([coeficients[i] * x ** i for i in range(1, len(coeficients))])
+    return np.exp(coeficients[0]) + np.sum(coeficients[i] * x ** i for i in range(1, len(coeficients)))
 
-def error(coeficients: list, data: list) -> float:
+def error(coeficients: np.array, x: np.array, y: np.array) -> float:
     """
     Calcula el error cuadrático total entre los valores estimados y los valores reales.
     
     Args:
-        coeficients (list): Coeficientes del modelo.
-        data (list): Matriz de datos en formato `[x, y]`, donde:
+        coeficients (np.array): Coeficientes del modelo.
+        data (np.array): Matriz de datos en formato `[x, y]`, donde:
                          - `x` es el valor de entrada.
                          - `y` es el valor real esperado.
     
     Returns:
         float: Error cuadrático total.
     """
-    return sum([(f(x, coeficients) - y) ** 2 for x, y in data])
+    return np.sum((f(x, coeficients) - y) ** 2)
 
-def fitness(coeficients: list):
+def fitness(coeficients: np.array):
 
-    data = get_data()
-    return error(coeficients, data)
+    x, y = data()
+    return error(coeficients, x, y)
 
 def migration_ratio(generations: int) -> int:
     """
@@ -119,7 +127,8 @@ def migration_ratio(generations: int) -> int:
     Returns:
         int: Ratio de migración.
     """
-    return int(rnd.uniform(log(generations), sqrt(generations)))
+    low, high = np.log(generations), np.sqrt(generations)
+    return np.random.randint(low=low, high=high)
 
 def measure(func):
     """
@@ -139,10 +148,12 @@ def measure(func):
         tm.start()  # Inicia el rastreo de memoria
         start_time = time.perf_counter()  # Tiempo de inicio
 
-        result = func(*args, **kwargs)  # Ejecuta la función
+        try:
+            result = func(*args, **kwargs)  # Ejecuta la función
+        finally:
+            end_time = time.perf_counter()  # Tiempo de fin
+            peak = tm.get_traced_memory()[1]  # Obtiene el uso máximo de memoria
+            tm.stop()  # Detiene el rastreo de memoria
 
-        end_time = time.perf_counter()  # Tiempo de fin
-        peak = tm.get_traced_memory()[1]  # Obtiene el uso máximo de memoria
-        tm.stop()  # Detiene el rastreo de memoria
         return {'solution': result, 'time': end_time - start_time, 'memory': peak}
     return wrapper

@@ -14,7 +14,7 @@ def polynomial_function(x, a, b, c, d, e, g, h, i):
 x_data = np.array([0, 1, 2, 3, 4, 5, 6, 7])
 y_data = np.array([1.5, 2.3, 3.8, 5.1, 7.3, 9.8, 13.2, 17.5])
 
-import utils
+import main.utils.utils as utils
 
 data = utils.get_data()
 

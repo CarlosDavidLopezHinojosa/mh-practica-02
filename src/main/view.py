@@ -1,10 +1,40 @@
 import streamlit as st
-import operators as ops
-import genetic as gnc
-import utils
+
+import algorithms.genetic as gnc
+import tools.utils as utils
 
 import pandas as pd
-import plot as plt
+import matplotlib.pyplot as plt
+import numpy as np
+
+import functions.selection as select
+import functions.crossing as cross
+import functions.mutation as mutate
+import functions.replacement as replace
+
+
+def plot_function(coefs):
+    """
+    Plotea la función ajustada con los coeficientes dados como un line chart.
+    """
+    x = np.linspace(-2, 2, 100)
+    y = utils.f(x, coefs)
+    chart_data = pd.DataFrame({
+        "y": y
+    })
+    st.line_chart(chart_data, color=["rgba(255, 0, 0, 0.8)"])
+
+def plot_predictions(predictions, actuals):
+    """
+    Plotea las predicciones y los valores reales como un scatter chart.
+    """
+    chart_data = pd.DataFrame({
+        "Predicciones": predictions,
+        "Valores Reales": actuals
+    })
+
+    st.scatter_chart(chart_data, color=["rgba(255, 0, 0, 0.8)", "rgba(0, 0, 255, 0.8)"])
+
 
 
 # Título de la aplicación
@@ -26,7 +56,9 @@ $$
             
 Y debemos ajustar el modelo a los siguientes datos:
 """)
-frame = pd.DataFrame(utils.get_data(), columns=["x", "y"])
+
+d = utils.data(compact=True)
+frame = pd.DataFrame(d, columns=["x", "y"])
 st.dataframe(frame)
 
 # Sección: Selección
@@ -93,33 +125,26 @@ El algoritmo genético basado en el modelo de islas divide la población en subp
 Cada cierto número de generaciones, los mejores individuos migran entre islas para mantener la diversidad genética.
 """)
 st.code("""
-def genetic_function_optimization(islands: list[list], island_id: int, 
-                                  pop_size: int, generations: int, 
-                                  select: callable, cross: callable, 
-                                  mutate: callable, replace:callable, 
-                                  fitness:callable, lock: object, 
-                                  results: object) -> tuple:
-    migration_ratio = utils.migration_ratio(generations)
-    island = islands[island_id]
+def genetic_function_optimization(island: np.array, pop_size: int, 
+                                  generations: int, select: callable, 
+                                  cross: callable, mutate: callable, 
+                                  replace: callable, fitness: callable) -> dict:
 
-    for generation in range(generations):
-        new_island = []
-        for _ in range(pop_size // 2):
+    for _ in range(generations):
+        new_island = np.empty((pop_size, island.shape[1]), dtype=island.dtype)
+        for i in range(pop_size // 2):
             p1, p2 = select(island, fitness), select(island, fitness)
             while p1 is p2:
                 p2 = select(island, fitness)
 
             ch1, ch2 = cross(p1, p2), cross(p2, p1)
             ch1, ch2 = mutate(ch1), mutate(ch2)
-            new_island.extend([ch1, ch2])
+            new_island[i*2], new_island[i*2+1] = ch1, ch2
 
-        replace(island, new_island)
-        if generation % migration_ratio == 0:
-            gnc.migrate(islands, island, island_id, fitness, lock)
+        replace(island, new_island, fitness)
 
     solution = min(island, key=fitness)
-    with lock:
-        results.append({'coefficients': solution, 'error': fitness(solution)})
+    return {'coefficients': solution, 'error': fitness(solution)}
 """, language="python")
 
 # Parámetros de entrada
@@ -129,8 +154,6 @@ pop_size = st.number_input("Tamaño de la Población por Isla", min_value=1, max
 generations = st.number_input("Número de Generaciones", min_value=1, max_value=1000, value=100, step=10)
 num_coef = 8
 
-
-
 # Botón para ejecutar el algoritmo
 if st.button("Ejecutar Algoritmo"):
     with st.spinner("Ejecutando el modelo de islas..."):
@@ -138,20 +161,40 @@ if st.button("Ejecutar Algoritmo"):
         if __name__ == '__main__':
             result = gnc.island_optimization(
             num_islands, pop_size, generations, num_coef,
-            ops.selection_tournament, 
-            ops.crossing_arithmetic, 
-            ops.mutation_gaussian, 
-            ops.replacement_elitism, 
+            select.tournament, 
+            cross.arithmetic, 
+            mutate.gaussian, 
+            replace.elitism, 
             utils.fitness
             )
-        st.success("Optimización completada.")
-        st.subheader("Resultado")
-        st.write(result)
-        data = utils.get_data()
-        plt.plot_predictions(predictions=[utils.f(x, result['solution']['coefficients']) for x, _ in data], actuals=[y for _, y in data])
+            st.success("Optimización completada.")
+            st.subheader("Resultado")
+            coefs = result['solution']['coefficients']
+            st.write("Coeficientes encontrados:")
+
+            st.latex(f"""
+                    a = {coefs[0]} \\\\
+                    b = {coefs[1]} \\\\
+                    c = {coefs[2]} \\\\
+                    d = {coefs[3]} \\\\
+                    e = {coefs[4]} \\\\
+                    f = {coefs[5]} \\\\
+                    g = {coefs[6]} \\\\
+                    h = {coefs[7]}
+                     """)
+            st.write("Error cuadrático medio (MSE):", result['solution']['error'])
+
+            st.write("Memoria utilizada:", result['memory'], "bytes")
+            st.write("Tiempo de ejecución:", result['time'], "segundos")
+
+            st.subheader("Gráfica de la función ajustada")
+
+
+            x, y = utils.data()
+            plot_predictions(predictions=utils.f(x, coefs), actuals=y)
         
-        st.subheader("La función predicha es:")
-        plt.plot_function(result['solution']['coefficients'])
+            st.subheader("La función predicha es:")
+            plot_function(result['solution']['coefficients'])
 
 st.header("Comparación con el modelo de regresión lineal")
 
