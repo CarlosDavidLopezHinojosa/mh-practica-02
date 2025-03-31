@@ -93,9 +93,11 @@ replacement_method = st.sidebar.selectbox("Método de Reemplazo", ["Elitismo", "
 # Ejecución del algoritmo
 # ============================
 
-
 st.header("Ejecución del Algoritmo Genético")
-ag_result = None
+
+# Inicializar variables en session_state
+if "ag_result" not in st.session_state:
+    st.session_state.ag_result = None
 
 if st.button("Ejecutar Algoritmo"):
     st.subheader("Ejecución del Algoritmo")
@@ -124,34 +126,37 @@ if st.button("Ejecutar Algoritmo"):
         )
 
         st.success("Optimización completada.")
+        st.session_state.ag_result = result  # Guardar resultados en session_state
 
-        # Mostrar resultados
-        st.subheader("Resultados")
-        coefs = result['solution']['coefficients']
-        st.write("Coeficientes encontrados:")
-        display_coefficients(coefs)
+# Mostrar resultados si existen
+if st.session_state.ag_result:
+    result = st.session_state.ag_result
+    st.subheader("Resultados")
+    coefs = result['solution']['coefficients']
+    st.write("Coeficientes encontrados:")
+    display_coefficients(coefs)
 
-        st.latex(f"""
-        \\text{{MSE}} = {result['solution']['error']:.4f} 
-        """)
+    st.latex(f"""
+    \\text{{MSE}} = {result['solution']['error']:.4f} 
+    """)
 
-        # Mostrar memoria y tiempo de ejecución
-        st.latex(f"""
-        \\text{{Memoria utilizada}} = {result['memory']} \\text{{ bytes}}
-        """)
+    # Mostrar memoria y tiempo de ejecución
+    st.latex(f"""
+    \\text{{Memoria utilizada}} = {result['memory']} \\text{{ bytes}}
+    """)
 
-        st.latex(f"""
-        \\text{{Tiempo de ejecución}} = {result['time']:.4f} \\text{{ segundos}}
-        """)
+    st.latex(f"""
+    \\text{{Tiempo de ejecución}} = {result['time']:.4f} \\text{{ segundos}}
+    """)
 
-        # Gráficas
-        st.subheader("Comparación de predicciones")
-        x, y = utils.data()
-        predictions = utils.f(x, coefs)
-        plot_predictions(predictions, y)
+    # Gráficas
+    st.subheader("Comparación de predicciones")
+    x, y = utils.data()
+    predictions = utils.f(x, coefs)
+    plot_predictions(predictions, y)
 
-        st.subheader("Gráfica de la función ajustada")
-        plot_function(coefs)
+    st.subheader("Gráfica de la función ajustada")
+    plot_function(coefs)
 
 # ============================
 # Comparación con regresión lineal
@@ -163,6 +168,10 @@ El modelo de regresión lineal se ajusta a los datos utilizando la librería `sc
 El objetivo es comparar el rendimiento del algoritmo genético con el modelo de regresión lineal tradicional.
 """)
 
+# Inicializar variables en session_state
+if "regression_result" not in st.session_state:
+    st.session_state.regression_result = None
+
 if st.button("Ejecutar Regresión Lineal"):
     st.subheader("Ejecución del Modelo de Regresión Lineal")
     with st.spinner("Ajustando el modelo de regresión lineal..."):
@@ -170,171 +179,95 @@ if st.button("Ejecutar Regresión Lineal"):
         params, covariance = regression.fit_polynomial(x, y)
 
         st.success("Regresión lineal completada.")
+        st.session_state.regression_result = {"params": params, "x": x, "y": y}  # Guardar resultados
 
-        # Mostrar resultados
-        st.subheader("Resultados de la Regresión Lineal")
-        display_coefficients(params)
+# Mostrar resultados si existen
+if st.session_state.regression_result:
+    params = st.session_state.regression_result["params"]
+    x = st.session_state.regression_result["x"]
+    y = st.session_state.regression_result["y"]
 
-        # Gráficas
-        st.subheader("Gráfica de la función ajustada")
-        plot_function(params)
-        st.subheader("Comparación de predicciones")
-        predictions = regression.polynomial_function(x, *params)
-        plot_predictions(predictions, y)
-        st.latex(f"""
-        \\text{{MSE}} = {utils.error(params, x, y):.4f} 
-        """)
-=======
-import operators as ops
-import genetic as gnc
-import utils
-
-import pandas as pd
-import plot as plt
+    st.subheader("Resultados de la Regresión Lineal")
+    display_coefficients(params)
+    st.latex(f"""
+    \\text{{MSE}} = {utils.error(params, x, y):.4f} 
+    """)
+    # Gráficas
+    st.subheader("Gráfica de la función ajustada")
+    plot_function(params)
+    st.subheader("Comparación de predicciones")
+    predictions = regression.polynomial_function(x, *params)
+    plot_predictions(predictions, y)
 
 
-# Título de la aplicación
-st.title("Optimización Genética con Modelo de Islas")
+    # ============================
+    # Comparación de Resultados
+    # ============================
 
-# Descripción del proyecto
-st.markdown("""
-Esta aplicación utiliza un algoritmo genético basado en el modelo de islas para resolver problemas de optimización.
-El modelo divide la población en subpoblaciones (islas) que evolucionan de forma independiente y ocasionalmente migran individuos entre ellas.
-            
-Queremos optimizar los coeficientes de un modelo de regresión lineal para minimizar el error cuadrático medio (MSE) en un conjunto de datos.
-            
-El objetivo es encontrar los coeficientes que mejor se ajusten a los datos, utilizando un enfoque evolutivo.
+    st.header("Comparación de Resultados")
+    st.markdown("""
+    En esta sección se comparan los resultados obtenidos por el algoritmo genético y el modelo de regresión lineal.
+    Se evalúan los coeficientes encontrados, el error cuadrático medio (MSE) y las gráficas de predicción.
+    """)
 
-La función que queremos optimizar es la siguiente:
-$$
-f(x) = e^{a} + bx + cx^2 + dx^3 + ex^4 + fx^5 + gx^6 + hx^7
-$$
-            
-Y debemos ajustar el modelo a los siguientes datos:
-""")
-frame = pd.DataFrame(utils.get_data(), columns=["x", "y"])
-st.dataframe(frame)
+    if st.session_state.ag_result and st.session_state.regression_result:
+        # Obtener resultados del algoritmo genético
+        ag_coefs = st.session_state.ag_result['solution']['coefficients']
+        ag_mse = st.session_state.ag_result['solution']['error']
 
-# Sección: Selección
-st.header("Selección")
-st.markdown("""
-- **Torneo binario:** Selecciona aleatoriamente dos individuos y elige el mejor. Es simple y eficaz, asegurando una presión selectiva equilibrada.
-- **Ruleta (proporcional a la aptitud):** Probabilidad de selección basada en la calidad de la solución. Puede ser útil, pero en problemas de optimización con valores de aptitud muy distintos puede ser menos efectivo.
-- **Ranking:** Ordena los individuos por aptitud y asigna probabilidades de selección proporcionales a su posición. Es una opción más estable que la ruleta.
+        # Obtener resultados de la regresión lineal
+        reg_coefs = st.session_state.regression_result["params"]
+        reg_mse = utils.error(reg_coefs, st.session_state.regression_result["x"], st.session_state.regression_result["y"])
 
-**Mejor opción recomendada:** Torneo binario, ya que mantiene un buen equilibrio entre explotación y exploración.
-""")
-st.code("""
-# Selección: Torneo binario
+        # Mostrar comparación de MSE
+        st.subheader("Comparación de MSE")
+        st.write(f"**Algoritmo Genético:** {ag_mse:.4f}")
+        st.write(f"**Regresión Lineal:** {reg_mse:.4f}")
 
-""", language="python")
+        # Comparación de coeficientes
+        st.subheader("Comparación de Coeficientes")
+        st.write("**Coeficientes del Algoritmo Genético:**")
+        display_coefficients(ag_coefs)
+        st.write("**Coeficientes de la Regresión Lineal:**")
+        display_coefficients(reg_coefs)
 
-# Sección: Cruce
-st.header("Cruce")
-st.markdown("""
-- **Cruce de un punto o multipunto:** Intercambia segmentos de los cromosomas entre los padres en una o varias posiciones fijas.
-- **Cruce uniforme:** Mezcla genes de ambos padres con una probabilidad del $50\\%$. Mantiene diversidad pero puede perder estructuras buenas.
-- **Cruce aritmético (promediado):** Genera un hijo tomando un promedio ponderado de los valores de los padres, útil en problemas con variables continuas.
+        # Comparación de gráficas
+        # Comparación de gráficas
+        st.subheader("Comparación de Gráficas")
+        st.markdown("**Predicciones del Algoritmo Genético vs. Regresión Lineal**")
 
-**Mejor opción recomendada:** Cruce aritmético, ya que el problema requiere optimización de valores continuos y este operador favorece una mejor interpolación entre soluciones.
-""")
-st.code("""
-# Cruce: Cruce aritmético
+        # Obtener datos
+        x, y = utils.data()
+        ag_predictions = utils.f(x, ag_coefs)
+        reg_predictions = regression.polynomial_function(x, *reg_coefs)
 
-""", language="python")
+        # Crear el DataFrame con colores consistentes
+        comparison_data = pd.DataFrame({"x": x}).set_index("x")
+        comparison_data["Valores Reales"] = y
 
-# Sección: Mutación
-st.header("Mutación")
-st.markdown("""
-- **Mutación gaussiana:** Añade ruido gaussiano a los genes para realizar pequeñas variaciones en los coeficientes.
-- **Mutación uniforme:** Reemplaza valores por otros dentro de un rango aleatorio.
-- **Mutación por perturbación adaptativa:** Reduce o aumenta la magnitud de la mutación según la etapa de la evolución.
+        show_ag = st.checkbox("Mostrar valores del algoritmo genético", value=True)
+        show_linear = st.checkbox("Mostrar valores de la regresión lineal", value=True)
 
-**Mejor opción recomendada:** Mutación gaussiana, ya que permite pequeños ajustes en los coeficientes sin alterar demasiado la convergencia.
-""")
-st.code("""
-# Mutación: Mutación gaussiana
+        colors = ["rgb(0, 255, 0)"]
+        if show_ag:
+            comparison_data["Predicciones AG"] = ag_predictions
 
-""", language="python")
-
-# Sección: Reemplazo
-st.header("Reemplazo")
-st.markdown("""
-- **Reemplazo generacional completo:** Sustituye toda la población por los hijos generados.
-- **Elitismo:** Mantiene los mejores individuos de la generación anterior.
-- **Reemplazo estacionario:** Solo reemplaza una parte de la población en cada iteración.
-
-**Mejor opción recomendada:** Elitismo combinado con reemplazo estacionario, ya que asegura la retención de las mejores soluciones mientras introduce diversidad.
-""")
-st.code("""
-# Reemplazo: Elitismo
+        if show_linear:
+            comparison_data["Predicciones RL"] = reg_predictions
 
 
-""", language="python")
+        if show_ag and show_linear:
+            colors = ["rgb(255, 0, 0)", "rgb(0, 0, 255)"] + colors
+        elif show_ag:
+            colors = ["rgb(255, 0, 0)"] + colors
+        elif show_linear:
+            colors = ["rgb(0, 0, 255)"] + colors
 
-# Sección: Algoritmo Genético (Optimización)
-st.header("Algoritmo Genético (Optimización)")
-st.markdown("""
-El algoritmo genético basado en el modelo de islas divide la población en subpoblaciones (islas) que evolucionan de forma independiente. 
-Cada cierto número de generaciones, los mejores individuos migran entre islas para mantener la diversidad genética.
-""")
-st.code("""
-def genetic_function_optimization(islands: list[list], island_id: int, 
-                                  pop_size: int, generations: int, 
-                                  select: callable, cross: callable, 
-                                  mutate: callable, replace:callable, 
-                                  fitness:callable, lock: object, 
-                                  results: object) -> tuple:
-    migration_ratio = utils.migration_ratio(generations)
-    island = islands[island_id]
-
-    for generation in range(generations):
-        new_island = []
-        for _ in range(pop_size // 2):
-            p1, p2 = select(island, fitness), select(island, fitness)
-            while p1 is p2:
-                p2 = select(island, fitness)
-
-            ch1, ch2 = cross(p1, p2), cross(p2, p1)
-            ch1, ch2 = mutate(ch1), mutate(ch2)
-            new_island.extend([ch1, ch2])
-
-        replace(island, new_island)
-        if generation % migration_ratio == 0:
-            gnc.migrate(islands, island, island_id, fitness, lock)
-
-    solution = min(island, key=fitness)
-    with lock:
-        results.append({'coefficients': solution, 'error': fitness(solution)})
-""", language="python")
-
-# Parámetros de entrada
-st.header("Parámetros del Algoritmo")
-num_islands = st.number_input("Número de Islas", min_value=1, max_value=10, value=5, step=1)
-pop_size = st.number_input("Tamaño de la Población por Isla", min_value=1, max_value=1000, value=20, step=1)
-generations = st.number_input("Número de Generaciones", min_value=1, max_value=1000, value=100, step=10)
-num_coef = 8
+        elif not show_ag and not show_linear:
+            st.warning("Por favor, seleccione al menos un método para mostrar los valores de predicción.")
+        # Graficar
 
 
-
-# Botón para ejecutar el algoritmo
-if st.button("Ejecutar Algoritmo"):
-    with st.spinner("Ejecutando el modelo de islas..."):
-
-        if __name__ == '__main__':
-            result = gnc.island_optimization(
-            num_islands, pop_size, generations, num_coef,
-            ops.selection_tournament, 
-            ops.crossing_arithmetic, 
-            ops.mutation_gaussian, 
-            ops.replacement_elitism, 
-            utils.fitness
-            )
-        st.success("Optimización completada.")
-        st.subheader("Resultado")
-        st.write(result)
-        data = utils.get_data()
-        plt.plot_predictions(predictions=[utils.f(x, result['solution']['coefficients']) for x, _ in data], actuals=[y for _, y in data])
-        
-        st.subheader("La función predicha es:")
-        plt.plot_function(result['solution']['coefficients'])
+        st.line_chart(comparison_data, use_container_width=True, color=colors)
+    else:
+        st.warning("Por favor, ejecute ambos métodos para realizar la comparación.")
