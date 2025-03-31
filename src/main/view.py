@@ -93,9 +93,11 @@ replacement_method = st.sidebar.selectbox("Método de Reemplazo", ["Elitismo", "
 # Ejecución del algoritmo
 # ============================
 
-
 st.header("Ejecución del Algoritmo Genético")
-ag_result = None
+
+# Inicializar variables en session_state
+if "ag_result" not in st.session_state:
+    st.session_state.ag_result = None
 
 if st.button("Ejecutar Algoritmo"):
     st.subheader("Ejecución del Algoritmo")
@@ -124,34 +126,37 @@ if st.button("Ejecutar Algoritmo"):
         )
 
         st.success("Optimización completada.")
+        st.session_state.ag_result = result  # Guardar resultados en session_state
 
-        # Mostrar resultados
-        st.subheader("Resultados")
-        coefs = result['solution']['coefficients']
-        st.write("Coeficientes encontrados:")
-        display_coefficients(coefs)
+# Mostrar resultados si existen
+if st.session_state.ag_result:
+    result = st.session_state.ag_result
+    st.subheader("Resultados")
+    coefs = result['solution']['coefficients']
+    st.write("Coeficientes encontrados:")
+    display_coefficients(coefs)
 
-        st.latex(f"""
-        \\text{{MSE}} = {result['solution']['error']:.4f} 
-        """)
+    st.latex(f"""
+    \\text{{MSE}} = {result['solution']['error']:.4f} 
+    """)
 
-        # Mostrar memoria y tiempo de ejecución
-        st.latex(f"""
-        \\text{{Memoria utilizada}} = {result['memory']} \\text{{ bytes}}
-        """)
+    # Mostrar memoria y tiempo de ejecución
+    st.latex(f"""
+    \\text{{Memoria utilizada}} = {result['memory']} \\text{{ bytes}}
+    """)
 
-        st.latex(f"""
-        \\text{{Tiempo de ejecución}} = {result['time']:.4f} \\text{{ segundos}}
-        """)
+    st.latex(f"""
+    \\text{{Tiempo de ejecución}} = {result['time']:.4f} \\text{{ segundos}}
+    """)
 
-        # Gráficas
-        st.subheader("Comparación de predicciones")
-        x, y = utils.data()
-        predictions = utils.f(x, coefs)
-        plot_predictions(predictions, y)
+    # Gráficas
+    st.subheader("Comparación de predicciones")
+    x, y = utils.data()
+    predictions = utils.f(x, coefs)
+    plot_predictions(predictions, y)
 
-        st.subheader("Gráfica de la función ajustada")
-        plot_function(coefs)
+    st.subheader("Gráfica de la función ajustada")
+    plot_function(coefs)
 
 # ============================
 # Comparación con regresión lineal
@@ -163,6 +168,10 @@ El modelo de regresión lineal se ajusta a los datos utilizando la librería `sc
 El objetivo es comparar el rendimiento del algoritmo genético con el modelo de regresión lineal tradicional.
 """)
 
+# Inicializar variables en session_state
+if "regression_result" not in st.session_state:
+    st.session_state.regression_result = None
+
 if st.button("Ejecutar Regresión Lineal"):
     st.subheader("Ejecución del Modelo de Regresión Lineal")
     with st.spinner("Ajustando el modelo de regresión lineal..."):
@@ -170,17 +179,95 @@ if st.button("Ejecutar Regresión Lineal"):
         params, covariance = regression.fit_polynomial(x, y)
 
         st.success("Regresión lineal completada.")
+        st.session_state.regression_result = {"params": params, "x": x, "y": y}  # Guardar resultados
 
-        # Mostrar resultados
-        st.subheader("Resultados de la Regresión Lineal")
-        display_coefficients(params)
+# Mostrar resultados si existen
+if st.session_state.regression_result:
+    params = st.session_state.regression_result["params"]
+    x = st.session_state.regression_result["x"]
+    y = st.session_state.regression_result["y"]
 
-        # Gráficas
-        st.subheader("Gráfica de la función ajustada")
-        plot_function(params)
-        st.subheader("Comparación de predicciones")
-        predictions = regression.polynomial_function(x, *params)
-        plot_predictions(predictions, y)
-        st.latex(f"""
-        \\text{{MSE}} = {utils.error(params, x, y):.4f} 
-        """)
+    st.subheader("Resultados de la Regresión Lineal")
+    display_coefficients(params)
+    st.latex(f"""
+    \\text{{MSE}} = {utils.error(params, x, y):.4f} 
+    """)
+    # Gráficas
+    st.subheader("Gráfica de la función ajustada")
+    plot_function(params)
+    st.subheader("Comparación de predicciones")
+    predictions = regression.polynomial_function(x, *params)
+    plot_predictions(predictions, y)
+
+
+    # ============================
+    # Comparación de Resultados
+    # ============================
+
+    st.header("Comparación de Resultados")
+    st.markdown("""
+    En esta sección se comparan los resultados obtenidos por el algoritmo genético y el modelo de regresión lineal.
+    Se evalúan los coeficientes encontrados, el error cuadrático medio (MSE) y las gráficas de predicción.
+    """)
+
+    if st.session_state.ag_result and st.session_state.regression_result:
+        # Obtener resultados del algoritmo genético
+        ag_coefs = st.session_state.ag_result['solution']['coefficients']
+        ag_mse = st.session_state.ag_result['solution']['error']
+
+        # Obtener resultados de la regresión lineal
+        reg_coefs = st.session_state.regression_result["params"]
+        reg_mse = utils.error(reg_coefs, st.session_state.regression_result["x"], st.session_state.regression_result["y"])
+
+        # Mostrar comparación de MSE
+        st.subheader("Comparación de MSE")
+        st.write(f"**Algoritmo Genético:** {ag_mse:.4f}")
+        st.write(f"**Regresión Lineal:** {reg_mse:.4f}")
+
+        # Comparación de coeficientes
+        st.subheader("Comparación de Coeficientes")
+        st.write("**Coeficientes del Algoritmo Genético:**")
+        display_coefficients(ag_coefs)
+        st.write("**Coeficientes de la Regresión Lineal:**")
+        display_coefficients(reg_coefs)
+
+        # Comparación de gráficas
+        # Comparación de gráficas
+        st.subheader("Comparación de Gráficas")
+        st.markdown("**Predicciones del Algoritmo Genético vs. Regresión Lineal**")
+
+        # Obtener datos
+        x, y = utils.data()
+        ag_predictions = utils.f(x, ag_coefs)
+        reg_predictions = regression.polynomial_function(x, *reg_coefs)
+
+        # Crear el DataFrame con colores consistentes
+        comparison_data = pd.DataFrame({"x": x}).set_index("x")
+        comparison_data["Valores Reales"] = y
+
+        show_ag = st.checkbox("Mostrar valores del algoritmo genético", value=True)
+        show_linear = st.checkbox("Mostrar valores de la regresión lineal", value=True)
+
+        colors = ["rgb(0, 255, 0)"]
+        if show_ag:
+            comparison_data["Predicciones AG"] = ag_predictions
+
+        if show_linear:
+            comparison_data["Predicciones RL"] = reg_predictions
+
+
+        if show_ag and show_linear:
+            colors = ["rgb(255, 0, 0)", "rgb(0, 0, 255)"] + colors
+        elif show_ag:
+            colors = ["rgb(255, 0, 0)"] + colors
+        elif show_linear:
+            colors = ["rgb(0, 0, 255)"] + colors
+
+        elif not show_ag and not show_linear:
+            st.warning("Por favor, seleccione al menos un método para mostrar los valores de predicción.")
+        # Graficar
+
+
+        st.line_chart(comparison_data, use_container_width=True, color=colors)
+    else:
+        st.warning("Por favor, ejecute ambos métodos para realizar la comparación.")
