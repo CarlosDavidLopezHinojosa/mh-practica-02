@@ -152,3 +152,10 @@ if st.button("Ejecutar Algoritmo"):
         
         st.subheader("La función predicha es:")
         plt.plot_function(result['solution']['coefficients'])
+
+st.header("Comparación con el modelo de regresión lineal")
+
+st.markdown("""
+El modelo de regresión lineal se ajusta a los datos utilizando la librería `scikit-learn`.
+El objetivo es comparar el rendimiento del algoritmo genético con el modelo de regresión lineal tradicional.
+""")
