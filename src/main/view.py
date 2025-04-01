@@ -1,14 +1,15 @@
 import streamlit as st
-
-import algorithms.genetic as gnc
-import tools.utils as utils
 import pandas as pd
 import numpy as np
+
+import algorithms.genetic as gnc
+import algorithms.regression as regression
+
+import tools.utils as utils
 import functions.selection as select
 import functions.crossing as cross
 import functions.mutation as mutate
 import functions.replacement as replace
-import algorithms.regression as regression
 
 # ============================
 # Funciones auxiliares
@@ -132,12 +133,12 @@ if st.button("Ejecutar Algoritmo"):
 if st.session_state.ag_result:
     result = st.session_state.ag_result
     st.subheader("Resultados")
-    coefs = result['solution']['coefficients']
+    coefs = result['coefficients']
     st.write("Coeficientes encontrados:")
     display_coefficients(coefs)
 
     st.latex(f"""
-    \\text{{MSE}} = {result['solution']['error']:.4f} 
+    \\text{{MSE}} = {result['error']:.4f} 
     """)
 
     # Mostrar memoria y tiempo de ejecución
@@ -212,8 +213,8 @@ if st.session_state.regression_result:
 
     if st.session_state.ag_result and st.session_state.regression_result:
         # Obtener resultados del algoritmo genético
-        ag_coefs = st.session_state.ag_result['solution']['coefficients']
-        ag_mse = st.session_state.ag_result['solution']['error']
+        ag_coefs = st.session_state.ag_result['coefficients']
+        ag_mse = st.session_state.ag_result['error']
 
         # Obtener resultados de la regresión lineal
         reg_coefs = st.session_state.regression_result["params"]

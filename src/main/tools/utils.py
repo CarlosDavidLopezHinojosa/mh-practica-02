@@ -1,6 +1,7 @@
 import time
 import tracemalloc as tm
 import numpy as np
+import pickle as pkl
 
 from functools import wraps
 
@@ -134,13 +135,37 @@ def measure(func):
     def wrapper(*args, **kwargs):
         tm.start()  # Inicia el rastreo de memoria
         start_time = time.perf_counter()  # Tiempo de inicio
-
+        result = {}
         try:
-            result = func(*args, **kwargs)  # Ejecuta la función
+            result.update(func(*args, **kwargs))  # Ejecuta la función
         finally:
             end_time = time.perf_counter()  # Tiempo de fin
             peak = tm.get_traced_memory()[1]  # Obtiene el uso máximo de memoria
             tm.stop()  # Detiene el rastreo de memoria
-
-        return {'solution': result, 'time': end_time - start_time, 'memory': peak}
+        result.update({'time': end_time - start_time, 'memory': peak})
+        return result
     return wrapper
+
+def save(data, filename):
+    """
+    Guarda datos en un archivo utilizando pickle.
+    
+    Args:
+        data (any): Datos a guardar.
+        filename (str): Nombre del archivo donde se guardarán los datos.
+    """
+    with open(filename, 'wb') as f:
+        pkl.dump(data, f)
+
+def load(filename):
+    """
+    Carga datos desde un archivo utilizando pickle.
+    
+    Args:
+        filename (str): Nombre del archivo desde donde se cargarán los datos.
+    
+    Returns:
+        any: Datos cargados desde el archivo.
+    """
+    with open(filename, 'rb') as f:
+        return pkl.load(f)

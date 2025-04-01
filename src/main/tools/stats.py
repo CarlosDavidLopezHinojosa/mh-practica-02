@@ -1,9 +1,8 @@
-import statistics as stats
 import scipy.stats as hyp
 import scikit_posthocs as sp
 import numpy as np
 
-def mean(data):
+def mean(data, axis=None):
     """
     Calcula la media de un conjunto de datos.
     Args:
@@ -11,7 +10,7 @@ def mean(data):
     Returns:
         float: Media de los datos.
     """
-    return stats.mean(data)
+    return np.mean(data,axis=axis)
 
 def stdev(data):
     """
@@ -21,7 +20,7 @@ def stdev(data):
     Returns:
         float: Desviación estándar de los datos.
     """
-    return stats.stdev(data)
+    return np.std(data)
 
 def wilcoxon(data1, data2):
     """
@@ -33,7 +32,7 @@ def wilcoxon(data1, data2):
         dict: Resultados de la prueba con p-valor y estadístico.
     """
     test = hyp.wilcoxon(data1, data2)
-    return {'pvalue': test.pvalue, 'statistic': test.statistic, 'test-type': 'Wilcoxon'}
+    return {'pvalue': test.pvalue.item(), 'stat-test': 'Wilcoxon'}
 
 def friedman(data):
     """
@@ -44,7 +43,21 @@ def friedman(data):
         dict: Resultados de la prueba con p-valor y estadístico.
     """
     test = hyp.friedmanchisquare(*data)
-    return {'pvalue': test.pvalue, 'statistic': test.statistic, 'test-type': 'Friedman'}
+    return {'pvalue': test.pvalue.item(), 'stat-test': 'Friedman'}
+
+def critical_distance(data, alpha=0.05):
+    """
+    Calcula la distancia crítica para la prueba de Nemenyi.
+    Args:
+        data (list of lists or np.array): Datos organizados en varias muestras.
+        alpha (float): Nivel de significancia.
+    Returns:
+        float: Distancia crítica calculada.
+    """
+    k = len(data)
+    N = len(data[0])  # Número de muestras por grupo
+    q_alpha = hyp.studentized_range.ppf(1 - alpha, k, np.inf) / np.sqrt(2)
+    return q_alpha * np.sqrt(k * (k + 1) / (6 * N))
 
 def nemenyi(data):
     """
@@ -54,20 +67,9 @@ def nemenyi(data):
     Returns:
         dict: Matriz de p-valores resultante de la prueba de Nemenyi.
     """
-    test = np.array(sp.posthoc_nemenyi_friedman(data))
-    return {'pvalue': test, 'test-type': 'Nemenyi'}
-
-def bonferroni(data):
-    """
-    Realiza la corrección de Bonferroni como prueba post hoc.
-    Args:
-        data (list of lists or np.array): Datos organizados en varias muestras.
-    Returns:
-        dict: Matriz de p-valores resultante de la prueba de Bonferroni.
-    """
-    test = np.array(sp.posthoc_conover(data, p_adjust='bonferroni'))
-    return {'pvalue': test, 'test-type': 'Bonferroni'}
-
+    ranks = mean(hyp.rankdata(data, axis=1), axis=0)
+    return {'post-hoc': 'Nemenyi', 'ranks': ranks, 'critical-distance': critical_distance(data)}
+    
 def multitest(data, alpha=0.05):
     """
     Realiza la prueba de Friedman y, si es significativa, aplica pruebas post hoc.
@@ -77,13 +79,10 @@ def multitest(data, alpha=0.05):
     Returns:
         dict: Resultados de la prueba de Friedman y pruebas post hoc si es necesario.
     """
-    friedman_test = friedman(data)
-    if friedman_test['pvalue'] > alpha:
-        return {'pvalue': friedman_test['pvalue'], 'test-type': 'Friedman', 'result': 'Fail to reject H0'}
-    else:
-        nemenyi_test = nemenyi(data)
-        bonferroni_test = bonferroni(data)
-        return {'pvalue': friedman_test['pvalue'], 'test-type': 'Friedman', 'result': 'Reject H0', 'nemenyi': nemenyi_test, 'bonferroni': bonferroni_test}
+    reject = friedman(data)['pvalue'] <= alpha
+    test = {'stat-test': 'Friedman', 'reject': reject}
+    if reject: test.update(nemenyi(data))
+    return test
 
 def dualtest(data1, data2, alpha=0.05):
     """
@@ -95,11 +94,8 @@ def dualtest(data1, data2, alpha=0.05):
     Returns:
         dict: Resultados de la prueba de Wilcoxon con la decisión sobre H0.
     """
-    wilcoxon_test = wilcoxon(data1, data2)
-    if wilcoxon_test['pvalue'] > alpha:
-        return {'pvalue': wilcoxon_test['pvalue'], 'test-type': 'Wilcoxon', 'result': 'Fail to reject H0'}
-    else:
-        return {'pvalue': wilcoxon_test['pvalue'], 'test-type': 'Wilcoxon', 'result': 'Reject H0'}
+    reject = wilcoxon(data1, data2)['pvalue'] <= alpha
+    return {'stat-test': 'Wilcoxon', 'reject': reject}
 
 def statistical_test(data: np.array, alpha):
     """
@@ -110,7 +106,4 @@ def statistical_test(data: np.array, alpha):
     Returns:
         dict: Resultados de la prueba estadística adecuada.
     """
-    if len(data) == 2:
-        return dualtest(*data, alpha)
-    else:
-        return multitest(data, alpha)
+    return dualtest(*data, alpha) if len(data) == 2 else multitest(data, alpha)
