@@ -117,19 +117,6 @@ def fitness(coeficients: np.array):
     x, y = data()
     return error(coeficients, x, y)
 
-def migration_ratio(generations: int) -> int:
-    """
-    Calcula el ratio de migración en función del número de generaciones.
-    
-    Args:
-        generations (int): Número total de generaciones.
-    
-    Returns:
-        int: Ratio de migración.
-    """
-    low, high = np.log(generations), np.sqrt(generations)
-    return np.random.randint(low=low, high=high)
-
 def measure(func):
     """
     Decorador para medir el tiempo de ejecución y el uso de memoria de una función.

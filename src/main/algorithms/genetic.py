@@ -89,8 +89,7 @@ def parallelize(evolver: callable, num_islands: int, pop_size: int, generations:
         # Crear una lista de futuros para ejecutar la evolución en paralelo
         futures_list = [
             executor.submit(evolver, utils.population(pop_size, num_coef), pop_size, generations, 
-                            select, cross, mutate, replace, fitness)
-            for _ in range(num_islands)
+                            select, cross, mutate, replace, fitness) for _ in range(num_islands)
         ]
         for future in futures.as_completed(futures_list):
             try:
