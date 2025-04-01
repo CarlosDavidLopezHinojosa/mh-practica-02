@@ -110,7 +110,7 @@ def error(coeficients: np.array, x: np.array, y: np.array) -> float:
     Returns:
         float: Error cuadrático total.
     """
-    return np.sum((f(x, coeficients) - y) ** 2)
+    return np.sum(np.square(f(x, coeficients) - y))
 
 def fitness(coeficients: np.array):
 

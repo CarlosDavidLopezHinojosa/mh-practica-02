@@ -77,17 +77,17 @@ st.dataframe(frame)
 # Configuración del algoritmo
 # ============================
 
-st.sidebar.header("Configuración del Algoritmo")
-num_islands = st.sidebar.number_input("Número de Islas", min_value=1, max_value=10, value=5, step=1)
-pop_size = st.sidebar.number_input("Tamaño de la Población por Isla", min_value=1, max_value=1000, value=20, step=10)
-generations = st.sidebar.number_input("Número de Generaciones", min_value=1, max_value=1000, value=100, step=10)
+st.header("Configuración del Algoritmo")
+num_islands = st.number_input("Número de Islas", min_value=1, max_value=10, value=5, step=1)
+pop_size = st.number_input("Tamaño de la Población por Isla", min_value=1, max_value=1000, value=20, step=10)
+generations = st.number_input("Número de Generaciones", min_value=1, max_value=1000, value=100, step=10)
 num_coef = 8
 
-st.sidebar.subheader("Operadores Genéticos")
-selection_method = st.sidebar.selectbox("Método de Selección", ["Torneo Binario", "Ruleta", "Ranking"])
-crossover_method = st.sidebar.selectbox("Método de Cruce", ["Cruce Aritmético", "Cruce de Un Punto", "Cruce Uniforme"])
-mutation_method = st.sidebar.selectbox("Método de Mutación", ["Mutación Gaussiana", "Mutación Uniforme"])
-replacement_method = st.sidebar.selectbox("Método de Reemplazo", ["Elitismo", "Reemplazo Generacional Completo"])
+st.subheader("Operadores Genéticos")
+selection_method = st.selectbox("Método de Selección", ["Torneo Binario", "Ruleta", "Ranking"])
+crossover_method = st.selectbox("Método de Cruce", ["Cruce Aritmético", "Cruce de Un Punto", "Cruce Uniforme"])
+mutation_method = st.selectbox("Método de Mutación", ["Mutación Gaussiana", "Mutación Uniforme"])
+replacement_method = st.selectbox("Método de Reemplazo", ["Reemplazo Generacional Completo", "Elitismo" ])
 
 # ============================
 # Ejecución del algoritmo
@@ -116,7 +116,7 @@ if st.button("Ejecutar Algoritmo"):
         }[mutation_method]
 
         replacement = {
-            "Elitismo": replace.elitism,
+            "Reemplazo Generacional Completo": replace.total,
         }[replacement_method]
 
         # Ejecutar el algoritmo genético
