@@ -140,7 +140,6 @@ if st.button("Ejecutar Algoritmo"):
 if st.session_state.ag_result:
     result = st.session_state.ag_result
     st.subheader("Resultados")
-    st.write(result)
     coefs = result['coefficients']
     st.write("Coeficientes encontrados:")
     display_coefficients(coefs)
