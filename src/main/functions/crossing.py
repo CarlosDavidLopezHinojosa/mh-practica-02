@@ -13,4 +13,6 @@ def arithmetic(parent1, parent2):
     return alpha * parent1 + (1 - alpha) * parent2
 
 def crossings():
-    return [arithmetic]
+    return {
+        "Cruce Aritmético": arithmetic,
+    }

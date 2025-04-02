@@ -10,4 +10,6 @@ def total(population, new_population, fitness):
     np.copyto(population, new_population)
 
 def replacements():
-    return [total]
+    return {
+        "Reemplazo Generacional Completo": total,
+    }

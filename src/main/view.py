@@ -85,10 +85,25 @@ generations = st.number_input("Número de Generaciones", min_value=1, max_value=
 num_coef = 8
 
 st.subheader("Operadores Genéticos")
-selection_method = st.selectbox("Método de Selección", ["Torneo Binario", "Ruleta", "Ranking"])
-crossover_method = st.selectbox("Método de Cruce", ["Cruce Aritmético", "Cruce de Un Punto", "Cruce Uniforme"])
-mutation_method = st.selectbox("Método de Mutación", ["Mutación Gaussiana", "Mutación Uniforme"])
-replacement_method = st.selectbox("Método de Reemplazo", ["Reemplazo Generacional Completo", "Elitismo" ])
+st.markdown("""#### Operadores de selección""")
+selection_method = st.selectbox("Método de Selección", list(select.selections().keys()))
+
+if selection_method == "Torneo Binario":
+    selection_args = st.number_input("Número de individuos para el torneo (k)", min_value=2, max_value=pop_size, value=2, step=1)
+
+st.markdown("""#### Operadores de cruce""")
+crossover_method = st.selectbox("Método de Cruce", list(cross.crossings().keys()))
+
+st.markdown("""#### Operadores de mutación""")
+mutation_method = st.selectbox("Método de Mutación", list(mutate.mutations().keys()))
+
+if mutation_method == "Mutación Gaussiana":
+    mutation_rate = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
+    sigma = st.number_input("Desviación estándar", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
+    mutation_args = (mutation_rate, sigma)
+
+st.markdown("""#### Operadores de reemplazo""")
+replacement_method = st.selectbox("Método de Reemplazo", list(replace.replacements().keys()))
 
 # ============================
 # Ejecución del algoritmo
@@ -104,28 +119,16 @@ if st.button("Ejecutar Algoritmo"):
     st.subheader("Ejecución del Algoritmo")
     with st.spinner("Ejecutando el modelo de islas..."):
         # Mapear los operadores seleccionados
-        selection = {
-            "Torneo Binario": select.tournament,
-        }[selection_method]
-
-        crossover = {
-            "Cruce Aritmético": cross.arithmetic,
-        }[crossover_method]
-
-        mutation = {
-            "Mutación Gaussiana": mutate.gaussian,
-        }[mutation_method]
-
-        replacement = {
-            "Reemplazo Generacional Completo": replace.total,
-        }[replacement_method]
-
-        # Ejecutar el algoritmo genético
+        selection = select.selections()[selection_method]
+        crossover = cross.crossings()[crossover_method]
+        mutation = mutate.mutations()[mutation_method]
+        replacement = replace.replacements()[replacement_method]
+        
         result = gnc.island_optimization(
             num_islands, pop_size, generations, num_coef,
-            selection(10), 
+            selection(selection_args), 
             crossover, 
-            mutation(0.1, 0.1), 
+            mutation(*mutation_args), 
             replacement, 
             utils.fitness
         )
