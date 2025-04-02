@@ -137,13 +137,12 @@ def measure(func):
         start_time = time.perf_counter()  # Tiempo de inicio
         result = {}
         try:
-            result.update(func(*args, **kwargs))  # Ejecuta la función
+            result = func(*args, **kwargs)  # Ejecuta la función
         finally:
             end_time = time.perf_counter()  # Tiempo de fin
             peak = tm.get_traced_memory()[1]  # Obtiene el uso máximo de memoria
             tm.stop()  # Detiene el rastreo de memoria
-        result.update({'time': end_time - start_time, 'memory': peak})
-        return result
+        return {'solution': result, 'time': end_time - start_time, 'memory': peak}
     return wrapper
 
 def save(data, filename):

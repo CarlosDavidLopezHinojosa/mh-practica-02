@@ -123,7 +123,11 @@ if st.button("Ejecutar Algoritmo"):
         # Ejecutar el algoritmo genético
         result = gnc.island_optimization(
             num_islands, pop_size, generations, num_coef,
-            selection, crossover, mutation, replacement, utils.fitness
+            selection(10), 
+            crossover, 
+            mutation(0.1, 0.1), 
+            replacement, 
+            utils.fitness
         )
 
         st.success("Optimización completada.")
@@ -133,12 +137,13 @@ if st.button("Ejecutar Algoritmo"):
 if st.session_state.ag_result:
     result = st.session_state.ag_result
     st.subheader("Resultados")
-    coefs = result['coefficients']
+    st.write(result)
+    coefs = result['solution']['coefficients']
     st.write("Coeficientes encontrados:")
     display_coefficients(coefs)
 
     st.latex(f"""
-    \\text{{MSE}} = {result['error']:.4f} 
+    \\text{{MSE}} = {result['solution']['error']:.4f} 
     """)
 
     # Mostrar memoria y tiempo de ejecución
@@ -213,8 +218,8 @@ if st.session_state.regression_result:
 
     if st.session_state.ag_result and st.session_state.regression_result:
         # Obtener resultados del algoritmo genético
-        ag_coefs = st.session_state.ag_result['coefficients']
-        ag_mse = st.session_state.ag_result['error']
+        ag_coefs = st.session_state.ag_result['solution']['coefficients']
+        ag_mse = st.session_state.ag_result['solution']['error']
 
         # Obtener resultados de la regresión lineal
         reg_coefs = st.session_state.regression_result["params"]
