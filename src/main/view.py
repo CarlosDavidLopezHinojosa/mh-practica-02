@@ -5,6 +5,8 @@ import algorithms.genetic as gnc
 import algorithms.regression as regression
 
 import tools.utils as utils
+import tools.stats as stats
+
 import functions.selection as select
 import functions.crossing as cross
 import functions.mutation as mutate
