@@ -96,7 +96,6 @@ def plot_function(coeffs):
     """
     x = np.linspace(-2, 2, 100)
     y = utils.f(x, coeffs)
-    chart_data = {"y": y}
     st.line_chart({"y": y}, color=["rgb(255, 0, 0)"])
 
 def plot_predictions(predictions, actuals):
@@ -232,7 +231,7 @@ $$f(x) = e^{a} + bx + cx^2 + dx^3 + ex^4 + fx^5 + gx^6 + hx^7$$
 st.subheader("Datos de entrada")
 data = utils.data(compact=True)
 data = np.sort(data, axis=0)
-st.dataframe({"X": data[:, 0], "Y": data[:, 1]}, use_container_width=True)
+st.dataframe({"x": data[:, 0], "y": data[:, 1]}, use_container_width=True)
 
 # Configuración del algoritmo
 config = configure_algorithm()
