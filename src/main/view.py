@@ -98,9 +98,11 @@ st.markdown("""#### Operadores de mutación""")
 mutation_method = st.selectbox("Método de Mutación", list(mutate.mutations().keys()))
 
 if mutation_method == "Mutación Gaussiana":
-    mutation_rate = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
     sigma = st.number_input("Desviación estándar", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
-    mutation_args = (mutation_rate, sigma)
+    mutation_args = [sigma]
+
+mutation_rate = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
+
 
 st.markdown("""#### Operadores de reemplazo""")
 replacement_method = st.selectbox("Método de Reemplazo", list(replace.replacements().keys()))
@@ -129,6 +131,7 @@ if st.button("Ejecutar Algoritmo"):
             selection(selection_args), 
             crossover, 
             mutation(*mutation_args), 
+            mutation_rate,
             replacement, 
             utils.fitness
         )

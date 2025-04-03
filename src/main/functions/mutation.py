@@ -9,13 +9,11 @@ class gaussian:
     sumando un valor aleatorio de una distribución normal con media 0 y desviación
     estándar `sigma`.
     Args:
-        mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
         sigma (float): Desviación estándar de la mutación. Por defecto, 0.1.
     """
-    def __init__(self, mutation_rate=0.1, sigma=0.1):
-        self.mutation_rate = mutation_rate
+    def __init__(self, sigma=0.1):
         self.sigma = sigma
-    def __call__(self, individual: np.ndarray) -> np.ndarray:
+    def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
         """
         Mutación gaussiana utilizando numpy.
         Args:
@@ -25,7 +23,7 @@ class gaussian:
         Returns:
             np.ndarray: Individuo mutado.
         """
-        mutation_mask = np.random.random(individual.shape) < self.mutation_rate
+        mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] += np.random.normal(0, self.sigma, np.count_nonzero(mutation_mask))
         return individual
     

@@ -60,4 +60,7 @@ def BLX(parent1, parent2):
 def crossings():
     return {
         "Cruce Aritmético": arithmetic,
+        "Cruce de Un Punto": single_point,
+        "Cruce Uniforme": uniform,
+        "Cruce BLX": BLX,
     }
