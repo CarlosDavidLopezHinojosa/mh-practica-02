@@ -28,79 +28,80 @@ class gaussian:
         return individual
     
 
-def intercambio(individual: np.ndarray) -> np.ndarray:
+class uniforme:
     """
-    Mutación basada en intercambios.
-    Selecciona dos genes aleatorios del individuo y los intercambia.
+    Mutación uniforme.
+    Esta clase implementa la mutación uniforme, donde cada gen del individuo
+    tiene una probabilidad `mutation_rate` de ser mutado. La mutación se realiza
+    reemplazando el gen por un valor aleatorio entre 0 y 1.
     Args:
-        individual (np.ndarray): Individuo a mutar.
-    Returns:
-        np.ndarray: Individuo mutado.
+        mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
     """
-    # Seleccionar dos índices aleatorios diferentes
-    idx1, idx2 = np.random.choice(len(individual), size=2, replace=False)
+    def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
+        """
+        Mutación uniforme utilizando numpy.
+        Args:
+            individual (np.ndarray): Individuo a mutar.
+            mutation_rate (float): Probabilidad de mutación por gen.
+        Returns:
+            np.ndarray: Individuo mutado.
+        """
+        mutation_mask = np.random.random(individual.shape) < mutation_rate
+        individual[mutation_mask] = np.random.uniform(0, 1, np.count_nonzero(mutation_mask))
+        return individual
     
-    # Intercambiar los valores de los genes seleccionados
-    individual[idx1], individual[idx2] = individual[idx2], individual[idx1]
-    
-    return individual
 
-
-def insercion(individual: np.ndarray) -> np.ndarray:
+class no_uniforme:
     """
-    Mutación basada en inserción.
-    Selecciona un número n de genes consecutivos (n < 15% del tamaño del individuo),
-    y los mueve a otra posición aleatoria manteniendo su orden y secuencia.
+    Mutación no uniforme.
+    Esta clase implementa la mutación no uniforme, donde cada gen del individuo
+    tiene una probabilidad `mutation_rate` de ser mutado. La mutación se realiza
+    reemplazando el gen por un valor aleatorio entre 0 y 1, pero con una distribución
+    no uniforme.
     Args:
-        individual (np.ndarray): Individuo a mutar.
-    Returns:
-        np.ndarray: Individuo mutado.
+        mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
     """
-    size = len(individual)
-    max_n = max(1, int(0.15 * size))  # Asegurarse de que n sea al menos 1
-    n = np.random.randint(1, max_n + 1)  # Seleccionar n aleatorio entre 1 y max_n
+    def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
+        """
+        Mutación no uniforme utilizando numpy.
+        Args:
+            individual (np.ndarray): Individuo a mutar.
+            mutation_rate (float): Probabilidad de mutación por gen.
+        Returns:
+            np.ndarray: Individuo mutado.
+        """
+        mutation_mask = np.random.random(individual.shape) < mutation_rate
+        individual[mutation_mask] = np.random.normal(0.5, 0.2, np.count_nonzero(mutation_mask))
+        return individual
     
-    # Seleccionar el inicio del segmento de n genes
-    start_idx = np.random.randint(0, size - n + 1)
-    segment = individual[start_idx:start_idx + n]
-    
-    # Eliminar el segmento del individuo
-    individual = np.delete(individual, slice(start_idx, start_idx + n))
-    
-    # Seleccionar una nueva posición aleatoria para insertar el segmento
-    insert_idx = np.random.randint(0, len(individual) + 1)
-    
-    # Insertar el segmento en la nueva posición
-    individual = np.insert(individual, insert_idx, segment)
-    
-    return individual
 
-
-def inversion(individual: np.ndarray) -> np.ndarray:
+class polinomica:
     """
-    Mutación basada en inversión.
-    Selecciona un número n de genes consecutivos (n < 15% del tamaño del individuo),
-    y los invierte manteniendo su posición original.
+    Mutación polinómica.
+    Esta clase implementa la mutación polinómica, donde cada gen del individuo
+    tiene una probabilidad `mutation_rate` de ser mutado. La mutación se realiza
+    utilizando una distribución polinómica.
     Args:
-        individual (np.ndarray): Individuo a mutar.
-    Returns:
-        np.ndarray: Individuo mutado.
+        mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
     """
-    size = len(individual)
-    max_n = max(1, int(0.15 * size))  # Asegurarse de que n sea al menos 1
-    n = np.random.randint(1, max_n + 1)  # Seleccionar n aleatorio entre 1 y max_n
-    
-    # Seleccionar el inicio del segmento de n genes
-    start_idx = np.random.randint(0, size - n + 1)
-    
-    # Invertir el segmento
-    individual[start_idx:start_idx + n] = np.flip(individual[start_idx:start_idx + n])
-    
-    return individual
+    def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
+        """
+        Mutación polinómica utilizando numpy.
+        Args:
+            individual (np.ndarray): Individuo a mutar.
+            mutation_rate (float): Probabilidad de mutación por gen.
+        Returns:
+            np.ndarray: Individuo mutado.
+        """
+        mutation_mask = np.random.random(individual.shape) < mutation_rate
+        individual[mutation_mask] = np.random.pareto(1.5, np.count_nonzero(mutation_mask))
+        return individual
 
 
 def mutations():
     return {
         "Mutación Gaussiana": gaussian,
-        "Mutación por Inserción": insercion,
+        "Mutación Uniforme": uniforme,
+        "Mutación No Uniforme": no_uniforme,
+        "Mutación Polinómica": polinomica,
     }
