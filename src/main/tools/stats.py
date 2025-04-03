@@ -123,7 +123,7 @@ def bonferroni(data: np.array, control: int, alpha=0.05):
     ajusted_pvalues = np.minimum(pvalues * (algorithms - 1), 1)
 
     reject = ajusted_pvalues <= alpha
-    return {'post-hoc': 'Bonferroni', 'reject': reject, 'ranks': ranks, 'adjusted-pvalues': ajusted_pvalues}  
+    return {'post-hoc': 'Bonferroni', 'control': control, 'ranks': ranks, 'adjusted-pvalues': ajusted_pvalues}  
 
 import plotly.graph_objects as go
 
@@ -196,7 +196,7 @@ def plot_nemenyi(nemenyi_result, labels):
 
 
 
-def plot_bonferroni(bonferroni_results, labels=None, alpha=0.05, control=0):
+def plot_bonferroni(bonferroni_results, labels=None, alpha=0.05):
     """
     Ejecuta la prueba de Bonferroni y genera un gráfico de barras interactivo de los p-valores ajustados.
     
@@ -217,7 +217,7 @@ def plot_bonferroni(bonferroni_results, labels=None, alpha=0.05, control=0):
     n_algorithms = len(adjusted_pvalues)
     if labels is None:
         labels = [f'Algoritmo {i}' for i in range(n_algorithms)]
-    comp_labels = [labels[i] for i in range(n_algorithms) if i != control]
+    comp_labels = [labels[i] for i in range(n_algorithms) if i != result['control']]
     
     # Colores: se asigna un color según si se rechaza o no H0 (p-valor ajustado ≤ α)
     colors = ['green' if p <= alpha else 'red' for p in adjusted_pvalues]
