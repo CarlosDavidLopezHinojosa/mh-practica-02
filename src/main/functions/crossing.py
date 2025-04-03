@@ -50,7 +50,7 @@ def BLX(parent1, parent2):
     Returns:
         np.ndarray: Hijo generado.
     """
-    alpha = 0.5
+    alpha = np.random.random()
     lower_bound = np.minimum(parent1, parent2) - alpha * np.abs(parent1 - parent2)
     upper_bound = np.maximum(parent1, parent2) + alpha * np.abs(parent1 - parent2)
     child = np.random.uniform(lower_bound, upper_bound)
