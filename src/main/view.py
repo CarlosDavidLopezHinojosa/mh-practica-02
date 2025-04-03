@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
 
 import algorithms.genetic as gnc
@@ -69,7 +68,6 @@ def configure_algorithm():
 
     return config
 
-
 def execute_genetic_algorithm(config):
     """
     Ejecuta el algoritmo genético con la configuración proporcionada.
@@ -88,6 +86,7 @@ def execute_genetic_algorithm(config):
                 config["replacement"], utils.fitness
             )
             st.success("Optimización completada.")
+            st.session_state['AG'] = result
             return result
     return None
 
@@ -97,17 +96,17 @@ def plot_function(coeffs):
     """
     x = np.linspace(-2, 2, 100)
     y = utils.f(x, coeffs)
-    chart_data = pd.DataFrame({"y": y})
-    st.line_chart(chart_data, color=["rgb(255, 0, 0)"])
+    chart_data = {"y": y}
+    st.line_chart({"y": y}, color=["rgb(255, 0, 0)"])
 
 def plot_predictions(predictions, actuals):
     """
     Plotea las predicciones y los valores reales como un scatter chart.
     """
-    chart_data = pd.DataFrame({
+    chart_data = {
         "Predicciones": predictions,
         "Valores Reales": actuals
-    })
+    }
     st.scatter_chart(chart_data, color=["rgb(255, 0, 0)", "rgb(0, 0, 255)"], use_container_width=True)
 
 def display_coefficients(coeffs):
@@ -159,7 +158,6 @@ def display_results(result):
         st.subheader("Gráfica de la función ajustada")
         plot_function(coeffs)
 
-
 def execute_regression():
     """
     Ejecuta el modelo de regresión lineal y muestra los resultados.
@@ -173,9 +171,10 @@ def execute_regression():
             x, y = utils.data()
             coefficients, covariance = regression.fit_polynomial(x, y)
             st.success("Regresión lineal completada.")
-            return {"coefficients": coefficients, 'error': utils.error(coefficients, x, y), "x": x, "y": y}
+            result = {"coefficients": coefficients, 'error': utils.error(coefficients, x, y)}
+            st.session_state['RL'] = result
+            return result
     return None
-
 
 def compare_results(ag_result, regression_result):
     """
@@ -190,10 +189,10 @@ def compare_results(ag_result, regression_result):
         En esta sección se comparan los resultados obtenidos por el algoritmo genético y el modelo de regresión lineal.
         Se evalúan los coeficientes encontrados, el error cuadrático medio (MSE) y las gráficas de predicción.
         """)
-
+        x, y = utils.data()
         # Mostrar comparación de MSE
         ag_mse = ag_result['error']
-        reg_mse = utils.error(regression_result["coefficients"], regression_result["x"], regression_result["y"])
+        reg_mse = utils.error(regression_result["coefficients"], x, y)
         st.subheader("Comparación de MSE")
         st.write(f"**Algoritmo Genético:** {ag_mse:.4f}")
         st.write(f"**Regresión Lineal:** {reg_mse:.4f}")
@@ -207,7 +206,7 @@ def compare_results(ag_result, regression_result):
 
         # Comparación de gráficas
         st.subheader("Comparación de Gráficas")
-        x, y = utils.data()
+        
         ag_predictions = utils.f(x, ag_result['coefficients'])
         reg_predictions = regression.polynomial_function(x, *regression_result["coefficients"])
         plot_predictions(ag_predictions, y)
@@ -223,29 +222,34 @@ st.title("Optimización Genética con Modelo de Islas")
 st.markdown("""
 Esta aplicación utiliza un algoritmo genético basado en el modelo de islas para resolver problemas de optimización.
 El objetivo es encontrar los coeficientes que mejor se ajusten a los datos, minimizando el error cuadrático medio (MSE).
+            
+Dichos coeficientes pertencen a la siguiente función:
+            
+$$f(x) = e^{a} + bx + cx^2 + dx^3 + ex^4 + fx^5 + gx^6 + hx^7$$
 """)
 
 # Mostrar los datos
 st.subheader("Datos de entrada")
 data = utils.data(compact=True)
 data = np.sort(data, axis=0)
-frame = pd.DataFrame(data, columns=["x", "y"])
-st.dataframe(frame)
+st.dataframe({"X": data[:, 0], "Y": data[:, 1]}, use_container_width=True)
 
 # Configuración del algoritmo
 config = configure_algorithm()
 
 # Ejecutar algoritmo genético
-ag_result = execute_genetic_algorithm(config)
+execute_genetic_algorithm(config)
 
 # Mostrar resultados del algoritmo genético
-display_results(ag_result)
+if "AG" in st.session_state:
+    display_results(st.session_state['AG'])
 
 # Ejecutar regresión lineal
-regression_result = execute_regression()
+execute_regression()
 
-if regression_result:
-    display_results(regression_result)
+# Mostrar resultados de la regresión lineal
+if 'RL' in st.session_state:
+    display_results(st.session_state['RL'])
 
-# Comparar resultados
-compare_results(ag_result, regression_result)
+if "AG" in st.session_state and "RL" in st.session_state:
+    compare_results(st.session_state['AG'], st.session_state['RL'])
