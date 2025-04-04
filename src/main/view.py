@@ -99,7 +99,7 @@ elif selection_method == "Ruleta":
     n = st.number_input("Número de individuos a seleccionar", min_value=1, max_value=pop_size, value=1, step=1)
     selection = selection(n) 
 elif selection_method == "Emparejamiento variado inverso":
-    k = st.number_input("Número de individuos en el subconjunto de candidatos", min_value=2, mac_value=pop_size, value=2, step=1)
+    k = st.number_input("Número de individuos en el subconjunto de candidatos", min_value=2, max_value=pop_size, value=2, step=1)
     selection = selection(k)
 
 st.markdown("""#### Operadores de cruce""")
