@@ -35,9 +35,7 @@ def genetic_function_optimization(island: np.array, pop_size: int,
             new_island = np.empty((pop_size, island.shape[1]), dtype=island.dtype)
             for i in range(pop_size // 2):
                 # Selección de padres
-                p1, p2 = select(island, fitness), select(island, fitness)
-                while p1 is p2:
-                    p2 = select(island, fitness)
+                p1, p2 = select(island)
 
                 # Cruce y mutación
                 ch1, ch2 = cross(p1, p2), cross(p2, p1)
