@@ -44,7 +44,7 @@ def configure_algorithm():
         selection = selection(utils.fitness, k)
     elif selection_method == "Ruleta":
         selection = selection(utils.fitness)
-    elif selection_method == "Diversidad Inversa":
+    elif selection_method == "Emparejamiento variado inverso":
         k = st.number_input("Número de individuos para la selección (k)", min_value=2, max_value=config["pop_size"], value=2, step=1)
         selection = selection(k)
     elif selection_method == "Aleatorio":
