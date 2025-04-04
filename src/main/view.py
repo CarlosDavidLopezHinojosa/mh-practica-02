@@ -58,6 +58,9 @@ def configure_algorithm():
     if mutation_method == "Mutación Gaussiana":
         sigma = st.number_input("Desviación estándar", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
         mutation = mutation(sigma)
+    elif mutation_method == "Mutación Polinómica":
+        eta = st.number_input("Eta", min_value=1.0, max_value=20.0, value=1.0, step=1.0)
+        mutation = mutation(eta)
     else:
         mutation = mutation() # Clase por defecto sin parametros
 
