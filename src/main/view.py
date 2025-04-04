@@ -4,13 +4,14 @@ import numpy as np
 import algorithms.genetic as gnc
 import algorithms.regression as regression
 
-import tools.utils as utils
-import tools.stats as stats
-
 import functions.selection as select
 import functions.crossing as cross
 import functions.mutation as mutate
 import functions.replacement as replace
+
+import tools.utils as utils
+import tools.stats as stats
+
 
 # ============================
 # Funciones auxiliares
@@ -58,7 +59,7 @@ def configure_algorithm():
         sigma = st.number_input("Desviación estándar", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
         mutation = mutation(sigma)
     else:
-        mutation = mutation()
+        mutation = mutation() # Clase por defecto sin parametros
 
     config["mutation"] = mutation
     config["mutation_rate"] = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
@@ -98,7 +99,7 @@ def plot_function(coeffs):
     """
     x = np.linspace(-2, 2, 100)
     y = utils.f(x, coeffs)
-    st.line_chart({"y": y}, color=["rgb(255, 0, 0)"])
+    st.line_chart({"y": y}, color=["rgb(255, 0, 0)"], use_container_width=True)
 
 def plot_predictions(predictions, actuals):
     """
@@ -252,5 +253,6 @@ execute_regression()
 if 'RL' in st.session_state:
     display_results(st.session_state['RL'])
 
+# Comparar resultados
 if "AG" in st.session_state and "RL" in st.session_state:
     compare_results(st.session_state['AG'], st.session_state['RL'])
