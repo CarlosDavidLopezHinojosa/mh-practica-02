@@ -1,6 +1,6 @@
 numpy
 scipy
-scikit-posthocs
 streamlit
 matplotlib
 watchdog
+plotly
