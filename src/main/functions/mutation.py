@@ -28,7 +28,7 @@ class gaussian:
         return individual
     
 
-class uniforme:
+class uniform:
     """
     Mutación uniforme.
     Esta clase implementa la mutación uniforme, donde cada gen del individuo
@@ -47,32 +47,88 @@ class uniforme:
             np.ndarray: Individuo mutado.
         """
         mutation_mask = np.random.random(individual.shape) < mutation_rate
-        individual[mutation_mask] = np.random.uniform(0, 1, np.count_nonzero(mutation_mask))
+        individual[mutation_mask] += np.random.uniform(-1, 1, np.count_nonzero(mutation_mask))
         return individual
     
 
-class no_uniforme:
+class non_uniform:
     """
     Mutación no uniforme.
     Esta clase implementa la mutación no uniforme, donde cada gen del individuo
     tiene una probabilidad `mutation_rate` de ser mutado. La mutación se realiza
-    reemplazando el gen por un valor aleatorio entre 0 y 1, pero con una distribución
+    ajustando los valores de los genes hacia los límites mínimo o máximo de manera
     no uniforme.
     Args:
-        mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
+        timer_max (int): Número máximo de iteraciones (generaciones).
+        speed (float): Velocidad de convergencia de la mutación.
     """
+    def __init__(self, timer_max, speed):
+        self.minimum = None
+        self.maximum = None
+        self.timer_max = timer_max
+        self.speed = speed
+        self.timer = 0
+
+    def reducer(self, r):
+        """
+        Calcula el factor de reducción basado en el progreso de las generaciones.
+        """
+        return 1 - r ** ((1 - self.timer / self.timer_max) ** self.speed)
+
+    def low_delta(self, individual, indices):
+        """
+        Calcula el delta para mover los genes hacia el límite inferior.
+        """
+        if self.minimum is None:
+            raise ValueError("El límite inferior (minimum) no está definido.")
+        return individual[indices] - ((individual[indices] - self.minimum[indices]) * self.reducer(np.random.random()))
+
+    def high_delta(self, individual, indices):
+        """
+        Calcula el delta para mover los genes hacia el límite superior.
+        """
+        if self.maximum is None:
+            raise ValueError("El límite superior (maximum) no está definido.")
+        return individual[indices] + ((self.maximum[indices] - individual[indices]) * self.reducer(np.random.random()))
+
+    def delta(self, individual, indices):
+        """
+        Decide si aplicar `low_delta` o `high_delta` para los genes seleccionados.
+        """
+        return np.where(
+            np.random.random(len(indices)) < 0.5,
+            self.low_delta(individual, indices),
+            self.high_delta(individual, indices)
+        )
+
     def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
         """
-        Mutación no uniforme utilizando numpy.
+        Aplica la mutación no uniforme al individuo.
         Args:
             individual (np.ndarray): Individuo a mutar.
             mutation_rate (float): Probabilidad de mutación por gen.
         Returns:
             np.ndarray: Individuo mutado.
         """
+        # Inicializar límites si no están definidos
+        if self.minimum is None:
+            self.minimum = np.copy(individual)
+        if self.maximum is None:
+            self.maximum = np.copy(individual)
+
+        # Generar máscara de mutación
         mutation_mask = np.random.random(individual.shape) < mutation_rate
-        individual[mutation_mask] = np.random.normal(0.5, 0.2, np.count_nonzero(mutation_mask))
+        indices = np.where(mutation_mask)[0]
+
+        if len(indices) > 0:
+            # Aplicar deltas solo a los genes seleccionados por la máscara
+            individual[indices] = self.delta(individual, indices)
+
+        # Incrementar el contador de generaciones
+        self.timer += 1
+
         return individual
+        
     
 
 class polynomial:
@@ -110,8 +166,8 @@ class polynomial:
         Returns:
             np.ndarray: Individuo mutado.
         """
-        self.minimum = individual if self.minimum is None else np.minimum(self.minimum, individual)
-        self.maximum = individual if self.maximum is None else np.maximum(self.maximum, individual)
+        self.minimum = np.copy(individual) if self.minimum is None else np.minimum(self.minimum, individual)
+        self.maximum = np.copy(individual) if self.maximum is None else np.maximum(self.maximum, individual)
 
         # Generar máscara de mutación
         mutation_mask = np.random.random(individual.shape) < mutation_rate
@@ -130,7 +186,7 @@ class polynomial:
 def mutations():
     return {
         "Mutación Gaussiana": gaussian,
-        "Mutación Uniforme": uniforme,
-        "Mutación No Uniforme": no_uniforme,
+        "Mutación Uniforme": uniform,
+        "Mutación No Uniforme": non_uniform,
         "Mutación Polinómica": polynomial,
     }

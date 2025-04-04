@@ -61,6 +61,9 @@ def configure_algorithm():
     elif mutation_method == "Mutación Polinómica":
         eta = st.number_input("Eta", min_value=1.0, max_value=20.0, value=1.0, step=1.0)
         mutation = mutation(eta)
+    elif mutation_method == "Mutación No Uniforme":
+        speed = st.number_input("Velocidad de convergencia", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
+        mutation = mutation(config["generations"], speed)
     else:
         mutation = mutation() # Clase por defecto sin parametros
 
