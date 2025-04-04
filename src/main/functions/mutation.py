@@ -24,7 +24,9 @@ class gaussian:
             np.ndarray: Individuo mutado.
         """
         mutation_mask = np.random.random(individual.shape) < mutation_rate
-        individual[mutation_mask] += np.random.normal(0, self.sigma, np.count_nonzero(mutation_mask))
+        indices = np.where(mutation_mask)[0]
+        if len(indices) > 0:
+            individual[indices] += np.random.normal(0, self.sigma, np.count_nonzero(mutation_mask))
         return individual
     
 
@@ -47,7 +49,9 @@ class uniform:
             np.ndarray: Individuo mutado.
         """
         mutation_mask = np.random.random(individual.shape) < mutation_rate
-        individual[mutation_mask] += np.random.uniform(-1, 1, np.count_nonzero(mutation_mask))
+        indices = np.where(mutation_mask)[0]
+        if len(indices) > 0:
+            individual[indices] += np.random.uniform(-1, 1, np.count_nonzero(mutation_mask))
         return individual
     
 
@@ -111,22 +115,17 @@ class non_uniform:
             np.ndarray: Individuo mutado.
         """
         # Inicializar límites si no están definidos
-        if self.minimum is None:
-            self.minimum = np.copy(individual)
-        if self.maximum is None:
-            self.maximum = np.copy(individual)
+        
+        self.minimum = np.copy(individual) if self.minimum is None else np.minimum(self.minimum, individual)
+        self.maximum = np.copy(individual) if self.maximum is None else np.maximum(self.maximum, individual)
 
         # Generar máscara de mutación
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         indices = np.where(mutation_mask)[0]
-
         if len(indices) > 0:
-            # Aplicar deltas solo a los genes seleccionados por la máscara
             individual[indices] = self.delta(individual, indices)
-
-        # Incrementar el contador de generaciones
-        self.timer += 1
-
+        
+        self.timer = min(self.timer + 1, self.timer_max) 
         return individual
         
     
