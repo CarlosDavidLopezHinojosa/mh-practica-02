@@ -41,9 +41,10 @@ def configure_algorithm():
     selection = select.selections()[selection_method]
     if selection_method == "Torneo Binario":
         k = st.number_input("Número de individuos para el torneo (k)", min_value=2, max_value=config["pop_size"], value=2, step=1)
-        selection = selection(utils.fitness, k)
+        selection = selection(k, utils.fitness)
     elif selection_method == "Ruleta":
-        selection = selection(utils.fitness)
+        n = st.number_input("Número de individuos para la selección (n)", min_value=2, max_value=config["pop_size"], value=2, step=1)
+        selection = selection(n, utils.fitness)
     elif selection_method == "Emparejamiento variado inverso":
         k = st.number_input("Número de individuos para la selección (k)", min_value=2, max_value=config["pop_size"], value=2, step=1)
         selection = selection(k)

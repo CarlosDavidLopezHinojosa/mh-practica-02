@@ -8,7 +8,7 @@ class tournament:
     Args:
         k (int): Número de individuos a seleccionar para el torneo. Por defecto, 2.
     """
-    def __init__(self,k=2, fitness: callable):
+    def __init__(self, k, fitness: callable):
         self.k = k
         self.fitness = fitness
 
@@ -34,7 +34,7 @@ class tournament:
         """
         p1 = self.select(population)
         p2 = self.select(population)
-        while p2 is p1:
+        while np.array_equal(p1, p2):  # Aseguramos que los padres sean diferentes
             p2 = self.select(population)
 
         return p1, p2
@@ -59,7 +59,7 @@ class random:
             np.ndarray: Individuos seleccionados.
         """
         indices = np.random.choice(len(population), self.n, replace=False)
-        return population[indices]
+        return population[indices][np.random.randint(0, self.n)] # Cambia esto porque no se si es lo que estabas tratando de hacer
     
     def __call__(self, population: np.array) -> np.array:
         """
@@ -71,7 +71,7 @@ class random:
         """
         p1 = self.select(population)
         p2 = self.select(population)
-        while p2 is p1:
+        while np.array_equal(p1, p2):
             p2 = self.select(population)
         return p1, p2
 
@@ -85,10 +85,35 @@ class roulette:
     Args:
         n (int): Número de individuos a seleccionar
     """
-    def __init__(self, n=1):
+    def __init__(self, n, fitness: callable):
         self.n = n
+        self.fitness = fitness
+    
+    def select(self, population: np.array) -> np.array:
+        """
+        Selección por ruleta.
+        Args:
+            population (np.ndarray): población actual (matriz de individuos).
+            fitness( callable): función de fitness.
+        Returns:
+            np.ndarray: Individuos seleccionados.
+        """
+        fitness_array = np.empty(len(population))
+        p = np.empty(len(population))
+        
+        for i in range(len(population)):
+            fitness_array[i] = self.fitness(population[i])
+        sum = np.sum(fitness_array)     # Obtenemos el sumatorio del fitness de la población actual
+        for i in range(len(population)):
+            p[i] = sum - fitness_array[i]
+        sum = np.sum(p)     # Obtenemos el sumatorio de todos los sum - fitness de la población
+        for i in range(len(population)):
+            p[i] = p[i] / sum
+        index = np.random.choice(len(population), size=self.n, replace=False, p=p)
+        selected = population[index]
+        return selected[np.random.randint(0, self.n)] # Cambia esto porque no se si es lo que estabas tratando de hacer
 
-    def __call__(population: np.array, fitness: callable, self) -> np.array:
+    def __call__(self, population: np.array) -> np.array:
         """
         Selección por ruleta utilizando numpy.
         Args:
@@ -97,20 +122,11 @@ class roulette:
         Returns:
             np.ndarray: Individuos seleccionados.
         """
-        sum = 0
-        fitness_array = np.empty(len(population))
-        p = np.empty(len(population))
-        
-        for i in range(len(population)):
-            fitness_array[i] = fitness(population[i])   # Guardamos el fitness de la población actual
-        sum = np.sum(fitness_array)     # Obtenemos el sumatorio del fitness de la población actual
-        for i in range(len(population)):
-            p[i] = sum - fitness_array[i]   # Obtenemos el valor sum - fitness para cada individuo, haciendo que a mejor individuo, mejor p[i]
-        sum = np.sum(p)     # Obtenemos el sumatorio de todos los sum - fitness de la población
-        for i in range(len(population)):
-            p[i] = p[i] / sum       # Distribuimos la probabilidad según sum - fitness
-        
-        return np.random.choice(len(population), size=self.n, replace=False, p=p)
+        p1 = self.select(population)
+        p2 = self.select(population)
+        while np.array_equal(p1, p2):
+            p2 = self.select(population)
+        return p1, p2
     
 class emparejamiento_variado_inverso:
     """
@@ -122,10 +138,10 @@ class emparejamiento_variado_inverso:
     Args:
         k (int): número de padres en el subconjunto seleccionado.
     """
-    def __init__(self, k = 2):
+    def __init__(self, k):
         self.k = k
 
-    def __call__(self, population: np.array, fitness) -> np.array:
+    def __call__(self, population: np.array) -> np.array:
         """
         Selección por emparejamiento variado inverso.
         Args:
@@ -133,15 +149,14 @@ class emparejamiento_variado_inverso:
         Returns:
             np.ndarray: los dos individuos seleccionados.
         """
-        distance = np.zeros(len(population))
-        first = random(population, n=1)     # Seleccionamos el primer padre de manera aleatoria
-        seconds = random(population, n=self.k)      # Seleccionamos al subconjunto de candidatos para padres
-        for i in len(seconds):
-            for j in len(seconds[i]):    # Obtenemos la distancia entre el primer padre y el resto de individuos
-                distance[i] += abs(first[j] - seconds[i][j])
+        distance = np.zeros(self.k)
+        first = population[np.random.randint(0, len(population))]  # Seleccionamos el primer padre de manera aleatoria
+        seconds = population[np.random.choice(len(population), self.k, replace=False)]  # Seleccionamos un subconjunto de padres aleatoriamente
+        for i in range(len(seconds)):
+            distance[i] = np.sum(np.abs(first - seconds[i]))  # Calculamos la distancia entre el primer padre y cada individuo del subconjunto
         second_index = np.argmax(distance)  
         second = seconds[second_index]  # Seleccionamos el padre de mayor distancia
-        return np.array([first, second]) 
+        return first, second
 
 def selections():
     return {
