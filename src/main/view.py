@@ -76,7 +76,20 @@ def configure_algorithm():
     # Reemplazo
     st.markdown("#### Operadores de reemplazo")
     replacement_method = st.selectbox("Método de Reemplazo", list(replace.replacements().keys()))
-    config["replacement"] = replace.replacements()[replacement_method]
+    replacement = replace.replacements()[replacement_method]
+
+    if replacement_method == "Reemplazar al peor de la población":
+        replacement = replacement(utils.fitness)
+    elif replacement_method == "Torneo restringido":
+        n = st.number_input("Número de individuos para el torneo (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
+        replacement = replacement(n)
+    elif replacement_method == "Peor entre semejantes":
+        n = st.number_input("Número de individuos más parecidos entre los que reemplazar (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
+        replacement = replacement(n)
+    else:
+        replacement = replacement()
+
+    config["replacement"] = replacement
 
     return config
 
