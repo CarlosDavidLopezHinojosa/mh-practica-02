@@ -66,10 +66,10 @@ class worse_between_similar:
             new_population (np.ndarray): Nueva población generada (matriz de individuos).
         """
         for new_individual in new_population:
-            distances = np.zeros(len(population))  # Ensure distances array matches population size
+            distances = np.zeros(len(population)) 
             for i in range(len(population)):
                 distances[i] = np.sum(np.abs(population[i] - new_individual))
-    # Limit the number of similar indices to the size of the population
+
             num_similar = min(self.n, len(population))
             similar_indices = np.argsort(distances)[:num_similar]
             similar_individuals = population[similar_indices]
