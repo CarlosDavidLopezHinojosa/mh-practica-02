@@ -1,24 +1,31 @@
 import numpy as np
 
-def total(population, new_population, fitness):
-    """
-    Reemplazo total de la población.
-    Args:
-        population (np.ndarray): Población actual (matriz de individuos).
-        new_population (np.ndarray): Nueva población generada (matriz de individuos).
-    """
-    np.copyto(population, new_population)
+class total:
+    def __init__(self):
+        pass
+    def __call__(self, population, new_population):
+        """
+        Reemplazo total de la población.
+        Args:
+            population (np.ndarray): Población actual (matriz de individuos).
+            new_population (np.ndarray): Nueva población generada (matriz de individuos).
+        """
+        np.copyto(population, new_population)
 
-def worse(population, new_population, fitness):
-    """
-    Reemplazo al peor de la población.
-    Args:
-        population (np.ndarray): Población actual (matriz de individuos).
-        new_population (np.ndarray): Nueva población generada (matriz de individuos).
-    """
-    for new_individual in new_population:
-        worst_index = np.argmax([fitness(ind) for ind in population])
-        population[worst_index] = new_individual
+class worse:
+    def __init__(self, fitness):
+        self.fitness = fitness
+        pass
+    def __call__(self, population, new_population):
+        """
+        Reemplazo al peor de la población.
+        Args:
+            population (np.ndarray): Población actual (matriz de individuos).
+            new_population (np.ndarray): Nueva población generada (matriz de individuos).
+        """
+        for new_individual in new_population:
+            worst_index = np.argmax([self.fitness(ind) for ind in population])
+            population[worst_index] = new_individual
 
 class restricted_tournament:
     """
@@ -29,7 +36,7 @@ class restricted_tournament:
     def __init__(self, n):
         self.n = n
     
-    def __call__(self, population, new_population, fitness):
+    def __call__(self, population, new_population):
         """
         Realiza un torneo restringido escogiendo n candidatos aleatorios.
         Args:
@@ -51,7 +58,7 @@ class worse_between_similar:
     def __init__(self, n):
         self.n = n
     
-    def __call__(self, population, new_population, fitness):
+    def __call__(self, population, new_population):
         """
         Realiza un reemplazo del peor entre semejantes.
         Args:
@@ -59,10 +66,12 @@ class worse_between_similar:
             new_population (np.ndarray): Nueva población generada (matriz de individuos).
         """
         for new_individual in new_population:
-            distances = np.zeros(self.n)
+            distances = np.zeros(len(population))  # Ensure distances array matches population size
             for i in range(len(population)):
                 distances[i] = np.sum(np.abs(population[i] - new_individual))
-            similar_indices = np.argsort(distances)[:self.n]
+    # Limit the number of similar indices to the size of the population
+            num_similar = min(self.n, len(population))
+            similar_indices = np.argsort(distances)[:num_similar]
             similar_individuals = population[similar_indices]
             worst_index = np.argmax([np.sum(np.abs(similar_individuals[i] - new_individual)) for i in range(len(similar_individuals))])
             population[similar_indices[worst_index]] = new_individual

@@ -43,7 +43,7 @@ def genetic_function_optimization(island: np.array, pop_size: int,
                 new_island[i*2], new_island[i*2+1] = ch1, ch2
 
             # Reemplazo de la población
-            replace(island, new_island, fitness)
+            replace(island, new_island)
 
         # Encontrar el mejor individuo
         solution = min(island, key=fitness)
