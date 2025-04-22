@@ -10,6 +10,14 @@ class mutator:
         self.fitness = fitness
         self.mode = mode
         self.convengences = []
+
+    def convergences(self):
+        """
+        Devuelve la lista de convergencias.
+        Returns:
+            list: Lista de convergencias.
+        """
+        return self.convengences
         
 class gaussian(mutator):
     """
@@ -43,7 +51,7 @@ class gaussian(mutator):
         return individual
     
 
-class uniforme(mutator):
+class uniform(mutator):
     """
     Mutación uniforme.
     Esta clase implementa la mutación uniforme, donde cada gen del individuo
@@ -71,7 +79,7 @@ class uniforme(mutator):
         return individual
     
 
-class no_uniforme(mutator):
+class non_uniform(mutator):
     """
     Mutación no uniforme.
     Esta clase implementa la mutación no uniforme, donde cada gen del individuo
@@ -132,7 +140,7 @@ class polinomica(mutator):
 def mutations():
     return {
         "Mutación Gaussiana": gaussian,
-        "Mutación Uniforme": uniforme,
-        "Mutación No Uniforme": no_uniforme,
+        "Mutación Uniforme": uniform,
+        "Mutación No Uniforme": non_uniform,
         "Mutación Polinómica": polinomica,
     }

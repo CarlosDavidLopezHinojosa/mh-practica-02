@@ -9,6 +9,14 @@ class crosser:
         self.fitness = fitness
         self.mode = mode
         self.convengences = []
+    
+    def convergences(self):
+        """
+        Devuelve la lista de convergencias.
+        Returns:
+            list: Lista de convergencias.
+        """
+        return self.convengences
 
 class arithmetic(crosser):
     

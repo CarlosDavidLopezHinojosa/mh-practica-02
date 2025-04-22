@@ -12,6 +12,14 @@ class selector:
 
     def select(self, population: np.array) -> np.array:
         raise NotImplementedError("Método 'select' no implementado en la clase base.")
+    
+    def convergences(self):
+        """
+        Devuelve la lista de convergencias.
+        Returns:
+            list: Lista de convergencias.
+        """
+        return self.convengences
 
 class tournament(selector):
     """
