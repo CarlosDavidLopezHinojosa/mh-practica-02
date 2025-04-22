@@ -122,7 +122,7 @@ def bonferroni(data: np.array, control: int, alpha=0.05):
     pvalues = 2 * hyp.norm.sf(np.array([z_friedman(control, i) for i in range(algorithms) if i != control]))
     ajusted_pvalues = np.minimum(pvalues * (algorithms - 1), 1)
 
-    reject = ajusted_pvalues <= alpha
+    # reject = ajusted_pvalues <= alpha
     return {'post-hoc': 'Bonferroni', 'control': control, 'ranks': ranks, 'adjusted-pvalues': ajusted_pvalues}  
 
 import plotly.graph_objects as go
