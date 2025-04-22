@@ -86,6 +86,8 @@ def configure_algorithm():
     elif replacement_method == "Peor entre semejantes":
         n = st.number_input("Número de individuos más parecidos entre los que reemplazar (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
         replacement = replacement(n)
+    elif replacement_method == "Elitismo":
+        replacement = replacement(utils.fitness)
     else:
         replacement = replacement()
 
