@@ -128,7 +128,7 @@ class roulette:
             p2 = self.select(population)
         return p1, p2
     
-class emparejamiento_variado_inverso:
+class inverse_matching:
     """
     Selección por emparejamiento variado inverso.
     Esta clase implementa la selección por emparejamiento variado inverso, que selecciona
@@ -163,5 +163,5 @@ def selections():
         "Aleatorio": random,
         "Torneo Binario": tournament,
         "Ruleta": roulette,
-        "Emparejamiento variado inverso": emparejamiento_variado_inverso
+        "Emparejamiento variado inverso": inverse_matching
     }
