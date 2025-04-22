@@ -1,7 +1,17 @@
 import numpy as np
 
 
-class gaussian:
+class mutator:
+    """
+    Clase base para la selección de individuos.
+    Esta clase es una interfaz para las diferentes estrategias de selección de individuos.
+    """
+    def __init__(self, fitness: callable, mode: bool = False):
+        self.fitness = fitness
+        self.mode = mode
+        self.convengences = []
+        
+class gaussian(mutator):
     """
     Mutación gaussiana.
     Esta clase implementa la mutación gaussiana, donde cada gen del individuo
@@ -11,8 +21,10 @@ class gaussian:
     Args:
         sigma (float): Desviación estándar de la mutación. Por defecto, 0.1.
     """
-    def __init__(self, sigma=0.1):
+    def __init__(self, sigma, fitness, mode = False):
+        super().__init__(fitness, mode)
         self.sigma = sigma
+
     def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
         """
         Mutación gaussiana utilizando numpy.
@@ -25,10 +37,13 @@ class gaussian:
         """
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] += np.random.normal(0, self.sigma, np.count_nonzero(mutation_mask))
+
+        if self.mode:
+            self.convengences.append(self.fitness(individual))
         return individual
     
 
-class uniforme:
+class uniforme(mutator):
     """
     Mutación uniforme.
     Esta clase implementa la mutación uniforme, donde cada gen del individuo
@@ -37,6 +52,9 @@ class uniforme:
     Args:
         mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
     """
+    def __init__(self, fitness, mode = False):
+        super().__init__(fitness, mode)
+
     def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
         """
         Mutación uniforme utilizando numpy.
@@ -48,10 +66,12 @@ class uniforme:
         """
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.uniform(0, 1, np.count_nonzero(mutation_mask))
+        if self.mode:
+            self.convengences.append(self.fitness(individual))
         return individual
     
 
-class no_uniforme:
+class no_uniforme(mutator):
     """
     Mutación no uniforme.
     Esta clase implementa la mutación no uniforme, donde cada gen del individuo
@@ -61,6 +81,9 @@ class no_uniforme:
     Args:
         mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
     """
+    def __init__(self, fitness, mode = False):
+        super().__init__(fitness, mode)
+
     def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
         """
         Mutación no uniforme utilizando numpy.
@@ -72,10 +95,12 @@ class no_uniforme:
         """
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.normal(0.5, 0.2, np.count_nonzero(mutation_mask))
+        if self.mode:
+            self.convengences.append(self.fitness(individual))
         return individual
     
 
-class polinomica:
+class polinomica(mutator):
     """
     Mutación polinómica.
     Esta clase implementa la mutación polinómica, donde cada gen del individuo
@@ -84,6 +109,10 @@ class polinomica:
     Args:
         mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
     """
+
+    def __init__(self, fitness, mode = False):
+        super().__init__(fitness, mode)
+
     def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
         """
         Mutación polinómica utilizando numpy.
@@ -95,6 +124,8 @@ class polinomica:
         """
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.pareto(1.5, np.count_nonzero(mutation_mask))
+        if self.mode:
+            self.convengences.append(self.fitness(individual))
         return individual
 
 

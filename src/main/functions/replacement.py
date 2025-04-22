@@ -1,8 +1,18 @@
 import numpy as np
 
-class total:
-    def __init__(self):
-        pass
+class replacer:
+    """
+    Clase base para la selección de individuos.
+    Esta clase es una interfaz para las diferentes estrategias de selección de individuos.
+    """
+    def __init__(self, fitness: callable, mode: bool = False):
+        self.fitness = fitness
+        self.mode = mode
+        self.convengences = []
+
+class total(replacer):
+    def __init__(self, fitness, mode = False):
+        super().__init__(fitness, mode)
     def __call__(self, population, new_population):
         """
         Reemplazo total de la población.
@@ -11,11 +21,13 @@ class total:
             new_population (np.ndarray): Nueva población generada (matriz de individuos).
         """
         np.copyto(population, new_population)
+        if self.mode:
+            self.convengences.append(min(self.fitness(population)))
 
-class worse:
-    def __init__(self, fitness):
-        self.fitness = fitness
-        pass
+class worse(replacer):
+    def __init__(self, fitness, mode = False):
+        super().__init__(fitness, mode)
+    
     def __call__(self, population, new_population):
         """
         Reemplazo al peor de la población.
@@ -27,13 +39,17 @@ class worse:
             worst_index = np.argmax([self.fitness(ind) for ind in population])
             population[worst_index] = new_individual
 
-class restricted_tournament:
+        if self.mode:
+            self.convengences.append(min(self.fitness(population)))
+
+class restricted_tournament(replacer):
     """
     Torneo restringido.
     Args:
         n (int): número de individuos en el torneo.
     """
-    def __init__(self, n):
+    def __init__(self, n, fitness, mode = False):
+        super().__init__(fitness, mode)
         self.n = n
     
     def __call__(self, population, new_population):
@@ -48,14 +64,17 @@ class restricted_tournament:
             candidates = population[candidates_indices]
             worst_index = np.argmax([np.sum(np.abs(candidates[i] - new_individual)) for i in range(len(candidates))])
             population[candidates_indices[worst_index]] = new_individual
-
-class worse_between_similar:
+            
+        if self.mode:
+            self.convengences.append(min(self.fitness(population)))
+class worse_between_similar(replacer):
     """
     Peor entre semejantes
     Args:
         n (int): número de individuos más parecidos entre los que reemplazar.
     """
-    def __init__(self, n):
+    def __init__(self, n, fitness, mode = False):
+        super().__init__(fitness, mode)
         self.n = n
     
     def __call__(self, population, new_population):
@@ -76,12 +95,14 @@ class worse_between_similar:
             worst_index = np.argmax([np.sum(np.abs(similar_individuals[i] - new_individual)) for i in range(len(similar_individuals))])
             population[similar_indices[worst_index]] = new_individual
 
+        if self.mode:
+            self.convengences.append(min(self.fitness(population)))
 
-class elitism:
 
-    def __init__(self, fitness):
-        self.fitness = fitness
-        pass
+class elitism(replacer):
+
+    def __init__(self, fitness, mode = False):
+        super().__init__(fitness, mode)
 
     def __call__(self, population: np.array, new_population: np.array):
 
@@ -96,6 +117,8 @@ class elitism:
         fitness_values = np.array([self.fitness(ind) for ind in combined_population])
         best_indices = np.argsort(fitness_values)[:len(population)]
         population[:] = combined_population[best_indices]
+        if self.mode:
+            self.convengences.append(self.fitness(population[0]))
         
 
 

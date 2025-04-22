@@ -47,10 +47,10 @@ def configure_algorithm():
         selection = selection(n, utils.fitness)
     elif selection_method == "Emparejamiento variado inverso":
         k = st.number_input("Número de individuos para la selección (k)", min_value=2, max_value=config["pop_size"], value=2, step=1)
-        selection = selection(k)
+        selection = selection(k, utils.fitness)
     elif selection_method == "Aleatorio":
         n = st.number_input("Número de individuos a seleccionar", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        selection = selection(n)
+        selection = selection(n, utils.fitness)
     else:
         selection = selection()
     config["selection"] = selection
@@ -58,7 +58,7 @@ def configure_algorithm():
     # Cruce
     st.markdown("#### Operadores de cruce")
     crossover_method = st.selectbox("Método de Cruce", list(cross.crossings().keys()))
-    config["crossover"] = cross.crossings()[crossover_method]
+    config["crossover"] = cross.crossings()[crossover_method](utils.fitness)
 
     # Mutación
     st.markdown("#### Operadores de mutación")
@@ -66,9 +66,9 @@ def configure_algorithm():
     mutation = mutate.mutations()[mutation_method]
     if mutation_method == "Mutación Gaussiana":
         sigma = st.number_input("Desviación estándar", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
-        mutation = mutation(sigma)
+        mutation = mutation(sigma, utils.fitness)
     else:
-        mutation = mutation() # Clase por defecto sin parametros
+        mutation = mutation(utils.fitness) # Clase por defecto sin parametros
 
     config["mutation"] = mutation
     config["mutation_rate"] = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
@@ -82,14 +82,14 @@ def configure_algorithm():
         replacement = replacement(utils.fitness)
     elif replacement_method == "Torneo restringido":
         n = st.number_input("Número de individuos para el torneo (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        replacement = replacement(n)
+        replacement = replacement(n, utils.fitness)
     elif replacement_method == "Peor entre semejantes":
         n = st.number_input("Número de individuos más parecidos entre los que reemplazar (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        replacement = replacement(n)
+        replacement = replacement(n, utils.fitness)
     elif replacement_method == "Elitismo":
         replacement = replacement(utils.fitness)
     else:
-        replacement = replacement()
+        replacement = replacement(utils.fitness)
 
     config["replacement"] = replacement
 

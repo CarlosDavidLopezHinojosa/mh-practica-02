@@ -1,5 +1,19 @@
 import numpy as np
-class tournament:
+
+class selector:
+    """
+    Clase base para la selección de individuos.
+    Esta clase es una interfaz para las diferentes estrategias de selección de individuos.
+    """
+    def __init__(self, fitness: callable, mode: bool = False):
+        self.fitness = fitness
+        self.mode = mode
+        self.convengences = []
+
+    def select(self, population: np.array) -> np.array:
+        raise NotImplementedError("Método 'select' no implementado en la clase base.")
+
+class tournament(selector):
     """
     Selección por torneo binario.
     Esta clase implementa la selección por torneo binario, donde se seleccionan
@@ -8,9 +22,9 @@ class tournament:
     Args:
         k (int): Número de individuos a seleccionar para el torneo. Por defecto, 2.
     """
-    def __init__(self, k, fitness: callable):
+    def __init__(self,k: int, fitness: callable, mode: bool = False):
+        super().__init__(fitness, mode)
         self.k = k
-        self.fitness = fitness
 
     def select(self, population: np.array) -> np.array:
         """
@@ -36,18 +50,22 @@ class tournament:
         p2 = self.select(population)
         while np.array_equal(p1, p2):  # Aseguramos que los padres sean diferentes
             p2 = self.select(population)
+        
+        if self.mode:
+            self.convengences.append(min(self.fitness(p1), self.fitness(p2)))
 
         return p1, p2
 
-class random:
+class random(selector):
     """
     Selección aleatoria.
-    Esta clase implementa la selección aleatoria, donde se seleccionan `n`individuos
+    Esta clase implementa la selección aleatoria, donde se seleccionan `n` individuos
     de manera aleatoria sin ninguna ponderación.
     Args:
         n (int): Número de individuos a seleccionar
     """
-    def __init__(self, n=1):
+    def __init__(self, n: int, fitness: callable, mode: bool = False):
+        super().__init__(fitness, mode)
         self.n = n
     
     def select(self, population: np.array) -> np.array:
@@ -73,9 +91,13 @@ class random:
         p2 = self.select(population)
         while np.array_equal(p1, p2):
             p2 = self.select(population)
+
+        if self.mode:
+            self.convengences.append(min(self.fitness(p1), self.fitness(p2)))
+
         return p1, p2
 
-class roulette:
+class roulette(selector):
     """
     Selección por ruleta.
     Esta clase implementa la selección por ruleta, donde se distribuye una probabilidad total
@@ -85,9 +107,9 @@ class roulette:
     Args:
         n (int): Número de individuos a seleccionar
     """
-    def __init__(self, n, fitness: callable):
+    def __init__(self, n, fitness, mode = False):
+        super().__init__(fitness, mode)
         self.n = n
-        self.fitness = fitness
     
     def select(self, population: np.array) -> np.array:
         """
@@ -112,6 +134,7 @@ class roulette:
         index = np.random.choice(len(population), size=self.n, replace=False, p=p)
         selected = population[index]
         return selected[np.random.randint(0, self.n)] # Cambia esto porque no se si es lo que estabas tratando de hacer
+    # Falta medir la convergencia
 
     def __call__(self, population: np.array) -> np.array:
         """
@@ -128,7 +151,7 @@ class roulette:
             p2 = self.select(population)
         return p1, p2
     
-class inverse_matching:
+class inverse_matching(selector):
     """
     Selección por emparejamiento variado inverso.
     Esta clase implementa la selección por emparejamiento variado inverso, que selecciona
@@ -138,7 +161,8 @@ class inverse_matching:
     Args:
         k (int): número de padres en el subconjunto seleccionado.
     """
-    def __init__(self, k):
+    def __init__(self, k: int, fitness: callable, mode: bool = False):
+        super().__init__(fitness, mode)
         self.k = k
 
     def __call__(self, population: np.array) -> np.array:
@@ -156,12 +180,16 @@ class inverse_matching:
             distance[i] = np.sum(np.abs(first - seconds[i]))  # Calculamos la distancia entre el primer padre y cada individuo del subconjunto
         second_index = np.argmax(distance)  
         second = seconds[second_index]  # Seleccionamos el padre de mayor distancia
+
+        if self.mode:
+            self.convengences.append(min(self.fitness(first), self.fitness(second)))
+
         return first, second
 
 def selections():
     return {
         "Aleatorio": random,
         "Torneo Binario": tournament,
-        "Ruleta": roulette,
+        # "Ruleta": roulette,
         "Emparejamiento variado inverso": inverse_matching
     }
