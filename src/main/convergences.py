@@ -36,3 +36,5 @@ formato = {
     "mutacion": mutga.convengences,
     "reemplazo": replac.convengences
 }
+
+utils.save(formato, formato["id"] + ".json")

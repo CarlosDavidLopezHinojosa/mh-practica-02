@@ -169,8 +169,8 @@ def save(data, filename):
         data (any): Datos a guardar.
         filename (str): Nombre del archivo donde se guardarán los datos.
     """
-    with open(filename, 'wb') as f:
-        json.dump(data, f)
+    with open(filename, 'w') as f:
+        json.dump(data, f, indent=4)
 
 def load(filename):
     """
@@ -182,5 +182,5 @@ def load(filename):
     Returns:
         any: Datos cargados desde el archivo.
     """
-    with open(filename, 'rb') as f:
+    with open(filename, 'r') as f:
         return json.load(f)
