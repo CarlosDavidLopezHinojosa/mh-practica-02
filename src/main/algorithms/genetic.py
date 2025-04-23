@@ -14,7 +14,8 @@ def diversity(island: np.array) -> float:
         float: Diversidad de la isla.
     """
     distances = np.linalg.norm(island[:, np.newaxis] - island, axis=2)
-    return np.mean(distances)
+    distances = distances[distances != 0]  # Excluir distancias cero (individuos idénticos)
+    return np.mean(distances) + np.std(distances)
 
 def genetic_function_optimization(island: np.array, pop_size: int,
                                   generations: int, select: callable,
@@ -42,12 +43,11 @@ def genetic_function_optimization(island: np.array, pop_size: int,
         - Libera explícitamente la memoria de las variables `island` y `new_island` al finalizar.
     """
     try:
-        div_coeff = diversity(island)
-        mutation_rate = 1 / (div_coeff + 1e-6)  # Evitar división por cero
+        mutation_rate = diversity(island)
 
         for _ in range(generations):
             # Crear una nueva población vacía
-            new_island = np.empty((pop_size, island.shape[1]), dtype=island.dtype)
+            new_island = np.empty(island.shape, dtype=island.dtype)
             for i in range(pop_size // 2):
                 # Selección de padres
                 p1, p2 = select(island)
@@ -60,8 +60,8 @@ def genetic_function_optimization(island: np.array, pop_size: int,
             # Reemplazo de la población
             replace(island, new_island)
             # Actualizar la diversidad
-            div_coeff = diversity(island)
-            mutation_rate = 1 / (div_coeff + 1e-6)  # Evitar división por cero
+            mutation_rate = diversity(island)
+            print(mutation_rate)
 
         # Encontrar el mejor individuo
         solution = min(island, key=fitness)
