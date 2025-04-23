@@ -4,3 +4,4 @@ streamlit
 matplotlib
 watchdog
 plotly
+scikit-optimize

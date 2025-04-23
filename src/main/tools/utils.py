@@ -96,7 +96,21 @@ def f(x: float, coeficients: np.array) -> float:
     Returns:
         float: Resultado de la función para el valor `x` dado.
     """
-    return np.exp(coeficients[0]) + np.sum(coeficients[i] * x ** i for i in range(1, len(coeficients)))
+    # print(coeficients[0])
+    c0 = coeficients[0]
+    with np.errstate(over='ignore'):  # Ignora advertencias de desbordamiento
+        try:
+            exp_value = np.exp(coeficients[0])
+            if np.isinf(exp_value):
+                raise OverflowError("El valor calculado es infinito.")
+        except OverflowError:
+            # print("OverflowError: coeficients[0] es demasiado grande para calcular exp.")
+            exp_value = 3.4903
+            c0 = np.log(exp_value)
+    coeficients[0] = exp_value
+    value = np.polyval(coeficients[::-1], x)
+    coeficients[0] = c0
+    return value
 
 def error(coeficients: np.array, x: np.array, y: np.array) -> float:
     """
@@ -104,14 +118,15 @@ def error(coeficients: np.array, x: np.array, y: np.array) -> float:
     
     Args:
         coeficients (np.array): Coeficientes del modelo.
-        data (np.array): Matriz de datos en formato `[x, y]`, donde:
-                         - `x` es el valor de entrada.
-                         - `y` es el valor real esperado.
+        x (np.array): Valores de entrada.
+        y (np.array): Valores reales esperados.
     
     Returns:
         float: Error cuadrático total.
     """
-    return np.sum(np.square(f(x, coeficients) - y))
+    predictions = f(x, coeficients)
+    predictions = np.clip(predictions, -1e10, 1e10)  # Limitar valores extremos en las predicciones
+    return np.mean((predictions - y) ** 2)
 
 def fitness(coeficients: np.array):
 

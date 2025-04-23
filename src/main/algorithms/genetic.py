@@ -13,9 +13,17 @@ def diversity(island: np.array) -> float:
     Returns:
         float: Diversidad de la isla.
     """
-    distances = np.linalg.norm(island[:, np.newaxis] - island, axis=2)
-    distances = distances[distances != 0]  # Excluir distancias cero (individuos idénticos)
-    return np.mean(distances) + np.std(distances)
+    try:
+        _island = island[~np.isnan(island).any(axis=1)]
+        distances = np.linalg.norm(_island[:, np.newaxis] - _island, axis=2)
+        max_distance = np.nan_to_num(np.max(distances), nan=0.0)
+        max_distance = np.max(distances)
+        mean_distance = (np.mean(distances) + np.std(distances)) / max_distance if max_distance != 0 else 0.1
+        print(f"Normalized mean distance: {mean_distance}")
+        return mean_distance
+    except Exception as e:
+        print(f"Error calculating diversity: {e}")
+        return 0.1
 
 def genetic_function_optimization(island: np.array, pop_size: int,
                                   generations: int, select: callable,
@@ -61,7 +69,7 @@ def genetic_function_optimization(island: np.array, pop_size: int,
             replace(island, new_island)
             # Actualizar la diversidad
             mutation_rate = diversity(island)
-            print(mutation_rate)
+            # print(mutation_rate)
 
         # Encontrar el mejor individuo
         solution = min(island, key=fitness)
