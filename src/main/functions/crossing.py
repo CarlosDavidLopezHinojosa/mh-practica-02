@@ -36,7 +36,7 @@ class arithmetic(crosser):
         ch = alpha * parent1 + (1 - alpha) * parent2
 
         if self.mode:
-            self.convengences.append(self.fitness(ch))
+            self.convengences.append(float(self.fitness(ch)))
         return ch
 
 
@@ -57,7 +57,7 @@ class single_point(crosser):
         point = np.random.randint(1, len(parent1))
         child = np.concatenate((parent1[:point], parent2[point:]))
         if self.mode:
-            self.convengences.append(self.fitness(child))
+            self.convengences.append(float(self.fitness(child)))
         return child
 
 
@@ -77,7 +77,7 @@ class uniform(crosser):
         mask = np.random.randint(0, 2, size=parent1.shape).astype(bool)
         child = np.where(mask, parent1, parent2)
         if self.mode:
-            self.convengences.append(self.fitness(child))
+            self.convengences.append(float(self.fitness(child)))
         return child
 
 
@@ -99,7 +99,7 @@ class BLX(crosser):
         upper_bound = np.maximum(parent1, parent2) + alpha * np.abs(parent1 - parent2)
         child = np.random.uniform(lower_bound, upper_bound)
         if self.mode:
-            self.convengences.append(self.fitness(child))
+            self.convengences.append(float(self.fitness(child)))
         return child
 
 

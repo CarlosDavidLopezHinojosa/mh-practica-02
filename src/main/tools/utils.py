@@ -1,7 +1,7 @@
 import time
 import tracemalloc as tm
 import numpy as np
-import pickle as pkl
+import json
 
 from functools import wraps
 
@@ -170,7 +170,7 @@ def save(data, filename):
         filename (str): Nombre del archivo donde se guardarán los datos.
     """
     with open(filename, 'wb') as f:
-        pkl.dump(data, f)
+        json.dump(data, f)
 
 def load(filename):
     """
@@ -183,4 +183,4 @@ def load(filename):
         any: Datos cargados desde el archivo.
     """
     with open(filename, 'rb') as f:
-        return pkl.load(f)
+        return json.load(f)

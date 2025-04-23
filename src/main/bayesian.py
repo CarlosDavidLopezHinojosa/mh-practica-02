@@ -80,7 +80,7 @@ def optimize_genetic_algorithm():
             return result['error'] + params['generations'] * 0.001  # Minimizar el error cuadrático medio (MSE)
         except Exception as e:
             print(f"Error during evaluation: {e}")
-            return 1e10  # Return a large penalty value
+            return 1e10 # Penalizar errores
 
     # Ejecutar la optimización bayesiana
     res = gp_minimize(objective, space, n_calls=20,verbose=True)

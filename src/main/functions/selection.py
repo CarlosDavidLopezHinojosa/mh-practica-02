@@ -60,7 +60,7 @@ class tournament(selector):
             p2 = self.select(population)
         
         if self.mode:
-            self.convengences.append(min(self.fitness(p1), self.fitness(p2)))
+            self.convengences.append(float(min(self.fitness(p1), self.fitness(p2))))
 
         return p1, p2
 
@@ -101,7 +101,7 @@ class random(selector):
             p2 = self.select(population)
 
         if self.mode:
-            self.convengences.append(min(self.fitness(p1), self.fitness(p2)))
+            self.convengences.append(float(min(self.fitness(p1), self.fitness(p2))))
 
         return p1, p2
 
@@ -190,7 +190,7 @@ class inverse_matching(selector):
         second = seconds[second_index]  # Seleccionamos el padre de mayor distancia
 
         if self.mode:
-            self.convengences.append(min(self.fitness(first), self.fitness(second)))
+            self.convengences.append(float(min(self.fitness(first), self.fitness(second))))
 
         return first, second
 

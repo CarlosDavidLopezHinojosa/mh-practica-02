@@ -19,7 +19,7 @@ def diversity(island: np.array) -> float:
         max_distance = np.nan_to_num(np.max(distances), nan=0.0)
         max_distance = np.max(distances)
         mean_distance = (np.mean(distances) + np.std(distances)) / max_distance if max_distance != 0 else 0.1
-        print(f"Normalized mean distance: {mean_distance}")
+        # print(f"Normalized mean distance: {mean_distance}")
         return mean_distance
     except Exception as e:
         print(f"Error calculating diversity: {e}")
@@ -127,7 +127,7 @@ def parallelize(evolver: callable, num_islands: int, pop_size: int, generations:
                 # Forzar la recolección de basura
                 gc.collect()
 
-    return solution
+    return list(solution)
 
 
 @utils.measure

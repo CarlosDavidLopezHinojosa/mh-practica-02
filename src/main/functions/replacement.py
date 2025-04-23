@@ -30,7 +30,7 @@ class total(replacer):
         """
         np.copyto(population, new_population)
         if self.mode:
-            self.convengences.append(min(self.fitness(population)))
+            self.convengences.append(min([float(self.fitness(p)) for p in population]))
 
 class worse(replacer):
     def __init__(self, fitness, mode = False):
@@ -48,7 +48,7 @@ class worse(replacer):
             population[worst_index] = new_individual
 
         if self.mode:
-            self.convengences.append(min(self.fitness(population)))
+            self.convengences.append(min([float(self.fitness(p)) for p in population]))
 
 class restricted_tournament(replacer):
     """
@@ -74,7 +74,7 @@ class restricted_tournament(replacer):
             population[candidates_indices[worst_index]] = new_individual
             
         if self.mode:
-            self.convengences.append(min(self.fitness(population)))
+            self.convengences.append(min([float(self.fitness(p)) for p in population]))
 class worse_between_similar(replacer):
     """
     Peor entre semejantes
@@ -104,7 +104,7 @@ class worse_between_similar(replacer):
             population[similar_indices[worst_index]] = new_individual
 
         if self.mode:
-            self.convengences.append(min(self.fitness(population)))
+            self.convengences.append(min(float(self.fitness(p)) for p in population))
 
 
 class elitism(replacer):

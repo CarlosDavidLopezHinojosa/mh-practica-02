@@ -47,7 +47,7 @@ class gaussian(mutator):
         individual[mutation_mask] += np.random.normal(0, self.sigma, np.count_nonzero(mutation_mask))
 
         if self.mode:
-            self.convengences.append(self.fitness(individual))
+            self.convengences.append(float(self.fitness(individual)))
         return individual
     
 
@@ -75,7 +75,7 @@ class uniform(mutator):
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.uniform(0, 1, np.count_nonzero(mutation_mask))
         if self.mode:
-            self.convengences.append(self.fitness(individual))
+            self.convengences.append(float(self.fitness(individual)))
         return individual
     
 
@@ -104,7 +104,7 @@ class non_uniform(mutator):
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.normal(0.5, 0.2, np.count_nonzero(mutation_mask))
         if self.mode:
-            self.convengences.append(self.fitness(individual))
+            self.convengences.append(float(self.fitness(individual)))
         return individual
     
 
@@ -133,7 +133,7 @@ class polinomica(mutator):
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.pareto(1.5, np.count_nonzero(mutation_mask))
         if self.mode:
-            self.convengences.append(self.fitness(individual))
+            self.convengences.append(float(self.fitness(individual)))
         return individual
 
 
