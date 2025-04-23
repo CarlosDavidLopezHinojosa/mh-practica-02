@@ -24,17 +24,19 @@ ag.genetic_function_optimization(
     utils.fitness
 )
 
-print("Convergencia de los selectores", seltc.convengences)
-print("Convergencia de los cruces", crossar.convengences)
-print("Convergencia de las mutaciones", mutga.convengences)
-print("Convergencia de los reemplazos", replac.convengences)
+# print("Convergencia de los selectores", seltc.convengences)
+# print("Convergencia de los cruces", crossar.convengences)
+# print("Convergencia de las mutaciones", mutga.convengences)
+# print("Convergencia de los reemplazos", replac.convengences)
 
 formato = {
-    "id": "convergenciasXXXXCombinacion",
+    "id": "convergenciasXXXX",
     "selector": seltc.convengences,
     "cruce": crossar.convengences,
     "mutacion": mutga.convengences,
     "reemplazo": replac.convengences
 }
 
-utils.save(formato, formato["id"] + ".json")
+SAVEPATH = "info/"
+
+utils.save(formato, SAVEPATH + formato["id"] + ".json")
