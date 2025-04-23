@@ -3,9 +3,22 @@ import tools.utils as utils
 import numpy as np
 import gc
 
-def genetic_function_optimization(island: np.array, pop_size: int, 
-                                  generations: int, select: callable, 
-                                  cross: callable, mutate: callable, mutation_rate: float,
+def diversity(island: np.array) -> float:
+    """
+    Calcula la diversidad de una isla como la media de las distancias entre todos los individuos.
+
+    Args:
+        island (np.array): Población de la isla (matriz de individuos).
+
+    Returns:
+        float: Diversidad de la isla.
+    """
+    distances = np.linalg.norm(island[:, np.newaxis] - island, axis=2)
+    return np.mean(distances)
+
+def genetic_function_optimization(island: np.array, pop_size: int,
+                                  generations: int, select: callable,
+                                  cross: callable, mutate: callable,
                                   replace: callable, fitness: callable) -> dict:
     """
     Implementa la evolución genética para una única isla.
@@ -16,7 +29,6 @@ def genetic_function_optimization(island: np.array, pop_size: int,
         generations (int): Número de generaciones a ejecutar.
         select (callable): Función de selección que elige individuos para reproducirse.
         cross (callable): Función de cruce que genera descendencia a partir de dos padres.
-        mutate (callable): Función de mutación que modifica un individuo.
         replace (callable): Función de reemplazo que actualiza la población con la nueva generación.
         fitness (callable): Función de fitness que evalúa la calidad de un individuo.
 
@@ -30,6 +42,9 @@ def genetic_function_optimization(island: np.array, pop_size: int,
         - Libera explícitamente la memoria de las variables `island` y `new_island` al finalizar.
     """
     try:
+        div_coeff = diversity(island)
+        mutation_rate = 1 / (div_coeff + 1e-6)  # Evitar división por cero
+
         for _ in range(generations):
             # Crear una nueva población vacía
             new_island = np.empty((pop_size, island.shape[1]), dtype=island.dtype)
@@ -44,6 +59,9 @@ def genetic_function_optimization(island: np.array, pop_size: int,
 
             # Reemplazo de la población
             replace(island, new_island)
+            # Actualizar la diversidad
+            div_coeff = diversity(island)
+            mutation_rate = 1 / (div_coeff + 1e-6)  # Evitar división por cero
 
         # Encontrar el mejor individuo
         solution = min(island, key=fitness)
@@ -51,11 +69,11 @@ def genetic_function_optimization(island: np.array, pop_size: int,
     finally:
         # Liberar memoria explícitamente
         del island
-        del new_island 
+        del new_island
 
 
-def parallelize(evolver: callable, num_islands: int, pop_size: int, generations: int, 
-                num_coef: int, select: callable, cross: callable, mutate: callable, mutation_rate: float,
+def parallelize(evolver: callable, num_islands: int, pop_size: int, generations: int,
+                num_coef: int, select: callable, cross: callable, mutate: callable,
                 replace: callable, fitness: callable) -> dict:
     """
     Paraleliza la ejecución del modelo de islas utilizando `ProcessPoolExecutor`.
@@ -86,8 +104,8 @@ def parallelize(evolver: callable, num_islands: int, pop_size: int, generations:
     with futures.ProcessPoolExecutor(max_workers=num_islands) as executor:
         # Crear una lista de futuros para ejecutar la evolución en paralelo
         futures_list = [
-            executor.submit(evolver, utils.population(pop_size, num_coef), pop_size, generations, 
-                            select, cross, mutate, mutation_rate, replace, fitness) for _ in range(num_islands)
+            executor.submit(evolver, utils.population(pop_size, num_coef), pop_size, generations,
+                            select, cross, mutate, replace, fitness) for _ in range(num_islands)
         ]
         for future in futures.as_completed(futures_list):
             try:
@@ -99,14 +117,14 @@ def parallelize(evolver: callable, num_islands: int, pop_size: int, generations:
                 print(f"Error: {e}")
             finally:
                 # Forzar la recolección de basura
-                gc.collect() 
-            
+                gc.collect()
+
     return solution
 
 
 @utils.measure
-def island_optimization(num_islands: int, pop_size: int, generations: int, num_coef: int, 
-                        select: callable, cross: callable, mutate: callable, mutation_rate: float,
+def island_optimization(num_islands: int, pop_size: int, generations: int, num_coef: int,
+                        select: callable, cross: callable, mutate: callable, # mutation_rate: float,
                         replace: callable, fitness: callable) -> dict:
     """
     Ejecuta el modelo de islas y mide el tiempo y el uso de memoria.
@@ -133,5 +151,5 @@ def island_optimization(num_islands: int, pop_size: int, generations: int, num_c
         - Utiliza el decorador `@utils.measure` para medir el tiempo y el uso de memoria.
         - Es la interfaz principal para ejecutar el modelo de islas.
     """
-    return parallelize(genetic_function_optimization, num_islands, pop_size, 
-                       generations, num_coef, select, cross, mutate, mutation_rate, replace, fitness)
+    return parallelize(genetic_function_optimization, num_islands, pop_size,
+                       generations, num_coef, select, cross, mutate, replace, fitness)

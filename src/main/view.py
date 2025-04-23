@@ -71,7 +71,7 @@ def configure_algorithm():
         mutation = mutation(utils.fitness) # Clase por defecto sin parametros
 
     config["mutation"] = mutation
-    config["mutation_rate"] = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
+    # config["mutation_rate"] = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
 
     # Reemplazo
     st.markdown("#### Operadores de reemplazo")
@@ -109,7 +109,7 @@ def execute_genetic_algorithm(config):
         with st.spinner("Ejecutando el modelo de islas..."):
             result = gnc.island_optimization(
                 config["num_islands"], config["pop_size"], config["generations"], config["num_coef"],
-                config["selection"], config["crossover"], config["mutation"], config["mutation_rate"],
+                config["selection"], config["crossover"], config["mutation"],
                 config["replacement"], utils.fitness
             )
             st.success("Optimización completada.")
