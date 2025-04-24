@@ -1,5 +1,5 @@
 import numpy as np
-
+from tools.utils import instant, memory, memstart, memstop
 class crosser:
     """
     Clase base para la selección de individuos.
@@ -8,15 +8,8 @@ class crosser:
     def __init__(self, fitness: callable, mode: bool = False):
         self.fitness = fitness
         self.mode = mode
-        self.convengences = []
-    
-    def convergences(self):
-        """
-        Devuelve la lista de convergencias.
-        Returns:
-            list: Lista de convergencias.
-        """
-        return self.convengences
+        self.measures = {'time': [], 'memory': [], 'convergences': []}
+        
 
 class arithmetic(crosser):
     
@@ -32,11 +25,18 @@ class arithmetic(crosser):
         Returns:
             np.ndarray: Hijo generado.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         alpha = np.random.random()
         ch = alpha * parent1 + (1 - alpha) * parent2
 
         if self.mode:
-            self.convengences.append(float(self.fitness(ch)))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+
+            self.measures['convergences'].append(float(self.fitness(ch)))
         return ch
 
 
@@ -54,10 +54,17 @@ class single_point(crosser):
         Returns:
             np.ndarray: Hijo generado.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         point = np.random.randint(1, len(parent1))
         child = np.concatenate((parent1[:point], parent2[point:]))
+
         if self.mode:
-            self.convengences.append(float(self.fitness(child)))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(child)))
         return child
 
 
@@ -74,10 +81,16 @@ class uniform(crosser):
         Returns:
             np.ndarray: Hijo generado.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         mask = np.random.randint(0, 2, size=parent1.shape).astype(bool)
         child = np.where(mask, parent1, parent2)
         if self.mode:
-            self.convengences.append(float(self.fitness(child)))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(child)))
         return child
 
 
@@ -94,12 +107,18 @@ class BLX(crosser):
         Returns:
             np.ndarray: Hijo generado.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         alpha = np.random.random()
         lower_bound = np.minimum(parent1, parent2) - alpha * np.abs(parent1 - parent2)
         upper_bound = np.maximum(parent1, parent2) + alpha * np.abs(parent1 - parent2)
         child = np.random.uniform(lower_bound, upper_bound)
         if self.mode:
-            self.convengences.append(float(self.fitness(child)))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(child)))
         return child
 
 

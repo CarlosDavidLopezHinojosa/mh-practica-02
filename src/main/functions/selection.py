@@ -1,4 +1,5 @@
 import numpy as np
+from tools.utils import instant, memory, memstart, memstop
 
 class selector:
     """
@@ -8,18 +9,11 @@ class selector:
     def __init__(self, fitness: callable, mode: bool = False):
         self.fitness = fitness
         self.mode = mode
-        self.convengences = []
+        self.measures = {'time': [], 'memory': [], 'convergences': []}
 
     def select(self, population: np.array) -> np.array:
         raise NotImplementedError("Método 'select' no implementado en la clase base.")
     
-    def convergences(self):
-        """
-        Devuelve la lista de convergencias.
-        Returns:
-            list: Lista de convergencias.
-        """
-        return self.convengences
 
 class tournament(selector):
     """
@@ -54,13 +48,19 @@ class tournament(selector):
         Returns:
             np.ndarray: Individuo seleccionado.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         p1 = self.select(population)
         p2 = self.select(population)
         while np.array_equal(p1, p2):  # Aseguramos que los padres sean diferentes
             p2 = self.select(population)
         
         if self.mode:
-            self.convengences.append(float(min(self.fitness(p1), self.fitness(p2))))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures["convergences"].append(float(min(self.fitness(p1), self.fitness(p2))))
 
         return p1, p2
 
@@ -95,13 +95,19 @@ class random(selector):
         Returns:
             np.ndarray: Individuos seleccionados.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         p1 = self.select(population)
         p2 = self.select(population)
         while np.array_equal(p1, p2):
             p2 = self.select(population)
 
         if self.mode:
-            self.convengences.append(float(min(self.fitness(p1), self.fitness(p2))))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures["convergences"].append(float(min(self.fitness(p1), self.fitness(p2))))
 
         return p1, p2
 
@@ -154,10 +160,19 @@ class roulette(selector):
         Returns:
             np.ndarray: Individuos seleccionados.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         p1 = self.select(population)
         p2 = self.select(population)
         while np.array_equal(p1, p2):
             p2 = self.select(population)
+
+        if self.mode:
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures["convergences"].append(float(min(self.fitness(p1), self.fitness(p2))))
         return p1, p2
     
 class inverse_matching(selector):
@@ -182,6 +197,9 @@ class inverse_matching(selector):
         Returns:
             np.ndarray: los dos individuos seleccionados.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         distance = np.zeros(self.k)
         first = population[np.random.randint(0, len(population))]  # Seleccionamos el primer padre de manera aleatoria
         seconds = population[np.random.choice(len(population), self.k, replace=False)]  # Seleccionamos un subconjunto de padres aleatoriamente
@@ -191,7 +209,10 @@ class inverse_matching(selector):
         second = seconds[second_index]  # Seleccionamos el padre de mayor distancia
 
         if self.mode:
-            self.convengences.append(float(min(self.fitness(first), self.fitness(second))))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures["convergences"].append(float(self.fitness(first)))
 
         return first, second
 

@@ -1,4 +1,5 @@
 import numpy as np
+from tools.utils import instant, memory, memstart, memstop
 
 
 class mutator:
@@ -9,15 +10,9 @@ class mutator:
     def __init__(self, fitness: callable, mode: bool = False):
         self.fitness = fitness
         self.mode = mode
-        self.convengences = []
+        self.measures = {'time': [], 'memory': [], 'convergences': []}
+        
 
-    def convergences(self):
-        """
-        Devuelve la lista de convergencias.
-        Returns:
-            list: Lista de convergencias.
-        """
-        return self.convengences
         
 class gaussian(mutator):
     """
@@ -43,11 +38,17 @@ class gaussian(mutator):
         Returns:
             np.ndarray: Individuo mutado.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] += np.random.normal(0, self.sigma, np.count_nonzero(mutation_mask))
 
         if self.mode:
-            self.convengences.append(float(self.fitness(individual)))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(individual)))
         return individual
     
 
@@ -72,10 +73,17 @@ class uniform(mutator):
         Returns:
             np.ndarray: Individuo mutado.
         """
+
+        if self.mode:
+            memstart()
+            start = instant()
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.uniform(0, 1, np.count_nonzero(mutation_mask))
         if self.mode:
-            self.convengences.append(float(self.fitness(individual)))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(individual)))
         return individual
     
 
@@ -101,10 +109,16 @@ class non_uniform(mutator):
         Returns:
             np.ndarray: Individuo mutado.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.normal(0.5, 0.2, np.count_nonzero(mutation_mask))
         if self.mode:
-            self.convengences.append(float(self.fitness(individual)))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(individual)))
         return individual
     
 
@@ -130,10 +144,17 @@ class polinomica(mutator):
         Returns:
             np.ndarray: Individuo mutado.
         """
+        if self.mode:
+            memstart()
+            start = instant()
         mutation_mask = np.random.random(individual.shape) < mutation_rate
         individual[mutation_mask] = np.random.pareto(1.5, np.count_nonzero(mutation_mask))
         if self.mode:
-            self.convengences.append(float(self.fitness(individual)))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+
+            self.measures["convergences"].append(float(self.fitness(individual)))
         return individual
 
 

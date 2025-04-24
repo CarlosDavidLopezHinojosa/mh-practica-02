@@ -1,4 +1,5 @@
 import numpy as np
+from tools.utils import instant, memory, memstart, memstop
 
 class replacer:
     """
@@ -8,15 +9,8 @@ class replacer:
     def __init__(self, fitness: callable, mode: bool = False):
         self.fitness = fitness
         self.mode = mode
-        self.convengences = []
+        self.measures = {'time': [], 'memory': [], 'convergences': []}
     
-    def convergences(self):
-        """
-        Devuelve la lista de convergencias.
-        Returns:
-            list: Lista de convergencias.
-        """
-        return self.convengences
 
 class total(replacer):
     def __init__(self, fitness, mode = False):
@@ -28,9 +22,14 @@ class total(replacer):
             population (np.ndarray): Población actual (matriz de individuos).
             new_population (np.ndarray): Nueva población generada (matriz de individuos).
         """
+        if self.mode:
+            start = instant()
         np.copyto(population, new_population)
         if self.mode:
-            self.convengences.append(min([float(self.fitness(p)) for p in population]))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(min([float(self.fitness(p)) for p in population]))
 
 class worse(replacer):
     def __init__(self, fitness, mode = False):
@@ -43,12 +42,18 @@ class worse(replacer):
             population (np.ndarray): Población actual (matriz de individuos).
             new_population (np.ndarray): Nueva población generada (matriz de individuos).
         """
+        if self.mode:
+            start = instant()
         for new_individual in new_population:
             worst_index = np.argmax([self.fitness(ind) for ind in population])
             population[worst_index] = new_individual
 
         if self.mode:
-            self.convengences.append(min([float(self.fitness(p)) for p in population]))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+
+            self.measures["convergences"].append(min([float(self.fitness(p)) for p in population]))
 
 class restricted_tournament(replacer):
     """
@@ -67,6 +72,8 @@ class restricted_tournament(replacer):
             population (np.ndarray): Población actual (matriz de individuos).
             new_population (np.ndarray): Nueva población generada (matriz de individuos).
         """
+        if self.mode:
+            start = instant()
         for new_individual in new_population:
             candidates_indices = np.random.choice(len(population), self.n, replace=False)
             candidates = population[candidates_indices]
@@ -74,7 +81,10 @@ class restricted_tournament(replacer):
             population[candidates_indices[worst_index]] = new_individual
             
         if self.mode:
-            self.convengences.append(min([float(self.fitness(p)) for p in population]))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(population[worst_index])))
 class worse_between_similar(replacer):
     """
     Peor entre semejantes
@@ -92,6 +102,8 @@ class worse_between_similar(replacer):
             population (np.ndarray): Población actual (matriz de individuos).
             new_population (np.ndarray): Nueva población generada (matriz de individuos).
         """
+        if self.mode:
+            start = instant()
         for new_individual in new_population:
             distances = np.zeros(len(population)) 
             for i in range(len(population)):
@@ -104,7 +116,10 @@ class worse_between_similar(replacer):
             population[similar_indices[worst_index]] = new_individual
 
         if self.mode:
-            self.convengences.append(min(float(self.fitness(p)) for p in population))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(population[worst_index])))
 
 
 class elitism(replacer):
@@ -121,12 +136,17 @@ class elitism(replacer):
             new_population (np.ndarray): Nueva población generada (matriz de individuos).
         """
         # Suponiendo que la función de fitness es tal que un valor menor es mejor
+        if self.mode:
+            start = instant()
         combined_population = np.vstack((population, new_population))
         fitness_values = np.array([self.fitness(ind) for ind in combined_population])
         best_indices = np.argsort(fitness_values)[:len(population)]
         population[:] = combined_population[best_indices]
         if self.mode:
-            self.convengences.append(self.fitness(population[0]))
+            self.measures['time'].append(instant() - start)
+            self.measures['memory'].append(memory())
+            memstop()
+            self.measures['convergences'].append(float(self.fitness(population[0])))
         
 
 
