@@ -62,7 +62,7 @@ def optimize_genetic_algorithm():
             if params['selection_method'] == 'Torneo Binario':
                 selection = selection(min(params['tournament_k'], params['pop_size']), fitness)
             elif params['selection_method'] == 'Aleatorio' or params['selection_method'] == 'Ruleta' or params['selection_method'] == 'Emparejamiento Variado Inverso':
-                selection = selection(min(params['selection_n'], params['pop_size'], fitness))
+                selection = selection(min(params['selection_n'], params['pop_size']), fitness)
             else:
                 selection = selection(fitness)
 
