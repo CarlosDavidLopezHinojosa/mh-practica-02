@@ -17,7 +17,6 @@ def diversity(island: np.array) -> float:
         _island = island[~np.isnan(island).any(axis=1)]
         distances = np.linalg.norm(_island[:, np.newaxis] - _island, axis=2)
         max_distance = np.nan_to_num(np.max(distances), nan=0.0)
-        max_distance = np.max(distances)
         mean_distance = (np.mean(distances) + np.std(distances)) / max_distance if max_distance != 0 else 0.1
         # print(f"Normalized mean distance: {mean_distance}")
         return mean_distance
