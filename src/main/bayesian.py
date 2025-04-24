@@ -52,7 +52,7 @@ def optimize_genetic_algorithm():
                 return 1e10  # Penalizar valores inválidos
             if params['pop_size'] <= 0 or params['generations'] <= 0:
                 return 1e10
-            if params['tournament_k'] < 2 or params['selection_n'] < 2 or params['mutation_rate'] <= 0 or params['mutation_rate'] > 1:
+            if params['tournament_k'] < 2 or params['selection_n'] < 2:
                 return 1e10
             if params['replacement_n'] < 2:
                 return 1e10
