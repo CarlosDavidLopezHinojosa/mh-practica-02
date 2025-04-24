@@ -139,9 +139,10 @@ class roulette(selector):
         sum = np.sum(p)     # Obtenemos el sumatorio de todos los sum - fitness de la población
         for i in range(len(population)):
             p[i] = p[i] / sum
-        index = np.random.choice(len(population), size=self.n, replace=False, p=p)
+        index = np.random.choice(range(len(population)), size=self.n, replace=False, p=p)
         selected = population[index]
-        return selected[np.random.randint(0, self.n)] # Cambia esto porque no se si es lo que estabas tratando de hacer
+        print(f"selected: {selected}")
+        return selected[np.random.randint(0, len(selected))]  # Selecciona un único individuo de los seleccionados
     # Falta medir la convergencia
 
     def __call__(self, population: np.array) -> np.array:
@@ -198,6 +199,6 @@ def selections():
     return {
         "Aleatorio": random,
         "Torneo Binario": tournament,
-        # "Ruleta": roulette,
+        "Ruleta": roulette,
         "Emparejamiento variado inverso": inverse_matching
     }
