@@ -24,6 +24,7 @@ class total(replacer):
         """
         if self.mode:
             start = instant()
+            memstart()
         np.copyto(population, new_population)
         if self.mode:
             self.measures['time'].append(instant() - start)
@@ -44,6 +45,7 @@ class worse(replacer):
         """
         if self.mode:
             start = instant()
+            memstart()
         for new_individual in new_population:
             worst_index = np.argmax([self.fitness(ind) for ind in population])
             population[worst_index] = new_individual
@@ -74,6 +76,7 @@ class restricted_tournament(replacer):
         """
         if self.mode:
             start = instant()
+            memstart()
         for new_individual in new_population:
             candidates_indices = np.random.choice(len(population), self.n, replace=False)
             candidates = population[candidates_indices]
@@ -104,6 +107,7 @@ class worse_between_similar(replacer):
         """
         if self.mode:
             start = instant()
+            memstart()
         for new_individual in new_population:
             distances = np.zeros(len(population)) 
             for i in range(len(population)):
@@ -138,6 +142,7 @@ class elitism(replacer):
         # Suponiendo que la función de fitness es tal que un valor menor es mejor
         if self.mode:
             start = instant()
+            memstart()
         combined_population = np.vstack((population, new_population))
         fitness_values = np.array([self.fitness(ind) for ind in combined_population])
         best_indices = np.argsort(fitness_values)[:len(population)]

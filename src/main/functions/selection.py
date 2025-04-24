@@ -42,21 +42,26 @@ class tournament(selector):
 
     def __call__(self, population: np.array) -> np.array:
         """
-        Llama a la función de selección.
+        Selección de dos padres.
         Args:
-            population (np.ndarray): Población actual (matriz de individuos).
+            population (np.ndarray): población actual (matriz de individuos).
         Returns:
-            np.ndarray: Individuo seleccionado.
+            np.ndarray: los dos individuos seleccionados.
         """
         if self.mode:
             memstart()
             start = instant()
+
+        # Seleccionar el primer padre
         p1 = self.select(population)
+
+        # Seleccionar el segundo padre, asegurando que sea diferente al primero
         p2 = self.select(population)
-        while np.array_equal(p1, p2):  # Aseguramos que los padres sean diferentes
+        while np.array_equal(p1, p2):
             p2 = self.select(population)
-        
+
         if self.mode:
+            # Medir solo una vez por llamada
             self.measures['time'].append(instant() - start)
             self.measures['memory'].append(memory())
             memstop()

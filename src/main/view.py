@@ -273,6 +273,15 @@ if "AG" in st.session_state:
 # Ejecutar regresión lineal
 execute_regression()
 
+import plot
+
+op = plot.operator_files
+
+for name, file in op.items():
+    figures = plot.process_file(file)
+    for name, fig in figures.items():
+        st.plotly_chart(fig, use_container_width=True)
+
 # Mostrar resultados de la regresión lineal
 if 'RL' in st.session_state:
     display_results(st.session_state['RL'])

@@ -81,7 +81,7 @@ def measure_replacements():
     utils.save(results, SAVEPATH + "replacements.json")
 
 if __name__ == "__main__":
-    measure_selectors()
-    measure_crossings()
-    measure_mutations()
+    # measure_selectors()
+    # measure_crossings()
+    # measure_mutations()
     measure_replacements()
