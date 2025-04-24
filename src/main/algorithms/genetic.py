@@ -51,7 +51,7 @@ def genetic_function_optimization(island: np.array, pop_size: int,
         - Libera explícitamente la memoria de las variables `island` y `new_island` al finalizar.
     """
     try:
-        mutation_rate = diversity(island)
+        mutation_rate = 1 - diversity(island)
 
         for _ in range(generations):
             # Crear una nueva población vacía
@@ -127,7 +127,7 @@ def parallelize(evolver: callable, num_islands: int, pop_size: int, generations:
                 # Forzar la recolección de basura
                 gc.collect()
 
-    return list(solution)
+    return solution
 
 
 @utils.measure
