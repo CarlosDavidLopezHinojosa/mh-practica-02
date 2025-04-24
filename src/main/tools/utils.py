@@ -2,6 +2,7 @@ import time
 import tracemalloc as tm
 import numpy as np
 import json
+from typing import Literal
 
 from functools import wraps
 
@@ -184,3 +185,36 @@ def load(filename):
     """
     with open(filename, 'r') as f:
         return json.load(f)
+
+def best_algorithm_config(mode: bool = False):
+    """
+    Devuelve la mejor configuración de algoritmo para el problema de optimización.
+    
+        - Tamano de la población: 23
+        - Generaciones: 143
+        - Selección: Torneo Binario con k=7
+        - Cruce: BLX
+        - Mutación: Gaussiana con sigma=0.05
+        - Reemplazo: Elitismo
+
+    Args:
+        mode (bool): Modo de ejecución. Si es True, mide la convergencia de los operadores.
+    
+    Returns:
+        dict: Diccionario con la mejor configuración de algoritmo.
+    """
+
+    import functions.selection as select
+    import functions.crossing as cross
+    import functions.mutation as mutate
+    import functions.replacement as replace
+    return {
+        'island': population(23, 8),
+        'pop_size': 23,
+        'generations': 143,
+        'select': select.tournament(7, fitness, mode),
+        'cross': cross.BLX(fitness, mode),
+        'mutate': mutate.gaussian(0.05, fitness, mode),
+        'replace': replace.elitism(fitness, mode),
+        'fitness': fitness,
+    }

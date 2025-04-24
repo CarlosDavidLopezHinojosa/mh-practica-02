@@ -40,3 +40,5 @@ formato = {
 SAVEPATH = "info/"
 
 utils.save(formato, SAVEPATH + formato["id"] + ".json")
+
+print(utils.best_algorithm_config())
