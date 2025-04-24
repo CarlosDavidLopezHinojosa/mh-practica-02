@@ -25,12 +25,14 @@ def optimize_genetic_algorithm():
         # Integer(1, 2,name='num_islands'),  # Número de islas
         Integer(10, 200, name='pop_size'),  # Tamaño de la población
         Integer(10, 500, name='generations'),  # Número de generaciones
-        Categorical(['Torneo Binario'], name='selection_method'),
+        Categorical(['Torneo Binario', 'Aleatorio', 'Ruleta', 'Emparejamiento Variado Inverso'], name='selection_method'),
         Categorical(['Cruce Aritmético', 'Cruce de Un Punto', 'Cruce Uniforme', 'Cruce BLX'], name='crossover_method'),
-        Categorical(['Mutación Gaussiana'], name='mutation_method'),
-        Categorical(['Reemplazo Generacional Completo'], name='replacement_method'),
+        Categorical(['Mutación Gaussiana', 'Mutación uniforme', 'Mutación no uniforme', 'Mutación Polinómica'], name='mutation_method'),
+        Categorical(['Reemplazo Generacional Completo', 'Reemplazar al peor de la población','Torneo restringido', 'Peor entre semejantes', 'Elitismo'], name='replacement_method'),
         Real(0.01, 1.0, name='mutation_sigma'),  # Parámetro para mutación gaussiana
-        Integer(2, 10, name='tournament_k')  # Parámetro para selección por torneo
+        Integer(2, 10, name='tournament_k'),  # Parámetro para selección por torneo
+        Integer(2, 10, name='selection_n'), # Parámetro para las selecciones por ruleta y por emparejamiento variado inverso
+        Integer(2, 10, name='replacement_n') # Parámetro para reemplazos de torneo restringido y peor entre semejantes
     ]
 
     @use_named_args(space)
@@ -50,11 +52,17 @@ def optimize_genetic_algorithm():
                 return 1e10  # Penalizar valores inválidos
             if params['pop_size'] <= 0 or params['generations'] <= 0:
                 return 1e10
+            if params['tournament_k'] < 2 or params['selection_n'] < 2 or params['mutation_rate'] <= 0 or params['mutation_rate'] > 1:
+                return 1e10
+            if params['replacement_n'] < 2:
+                return 1e10
 
             # Configurar los operadores según los parámetros
             selection = select.selections()[params['selection_method']]
             if params['selection_method'] == 'Torneo Binario':
                 selection = selection(min(params['tournament_k'], params['pop_size']), fitness)
+            elif params['selection_method'] == 'Ruleta' or params['selection_method'] == 'Emparejamiento Variado Inverso':
+                selection = selection(min(params['selection_n'], params['pop_size'], fitness))
             else:
                 selection = selection(fitness)
 
@@ -66,6 +74,10 @@ def optimize_genetic_algorithm():
                 mutation = mutation(fitness)
 
             replacement = replace.replacements()[params['replacement_method']](fitness)
+            if params['replacement_method'] == 'Torneo restringido' or params['replacement_method'] == 'Peor entre semejantes':
+                replacement = replacement(params['replacement_n'], fitness)
+            else:
+                replacement = replacement(fitness)
 
             result = gnc.genetic_function_optimization(
                 population(params['pop_size'], 8),
