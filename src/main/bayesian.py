@@ -31,7 +31,7 @@ def optimize_genetic_algorithm():
         Categorical(['Reemplazo Generacional Completo', 'Reemplazar al peor de la población','Torneo restringido', 'Peor entre semejantes', 'Elitismo'], name='replacement_method'),
         Real(0.01, 1.0, name='mutation_sigma'),  # Parámetro para mutación gaussiana
         Integer(2, 10, name='tournament_k'),  # Parámetro para selección por torneo
-        Integer(2, 10, name='selection_n'), # Parámetro para las selecciones por ruleta y por emparejamiento variado inverso
+        Integer(2, 10, name='selection_n'), # Parámetro para las selecciones aleatoria, por ruleta y por emparejamiento variado inverso
         Integer(2, 10, name='replacement_n') # Parámetro para reemplazos de torneo restringido y peor entre semejantes
     ]
 
@@ -61,7 +61,7 @@ def optimize_genetic_algorithm():
             selection = select.selections()[params['selection_method']]
             if params['selection_method'] == 'Torneo Binario':
                 selection = selection(min(params['tournament_k'], params['pop_size']), fitness)
-            elif params['selection_method'] == 'Ruleta' or params['selection_method'] == 'Emparejamiento Variado Inverso':
+            elif params['selection_method'] == 'Aleatorio' or params['selection_method'] == 'Ruleta' or params['selection_method'] == 'Emparejamiento Variado Inverso':
                 selection = selection(min(params['selection_n'], params['pop_size'], fitness))
             else:
                 selection = selection(fitness)
@@ -73,9 +73,9 @@ def optimize_genetic_algorithm():
             else:
                 mutation = mutation(fitness)
 
-            replacement = replace.replacements()[params['replacement_method']](fitness)
+            replacement = replace.replacements()[params['replacement_method']]
             if params['replacement_method'] == 'Torneo restringido' or params['replacement_method'] == 'Peor entre semejantes':
-                replacement = replacement(params['replacement_n'], fitness)
+                replacement = replacement(n = params['replacement_n'], fitness = fitness)
             else:
                 replacement = replacement(fitness)
 
