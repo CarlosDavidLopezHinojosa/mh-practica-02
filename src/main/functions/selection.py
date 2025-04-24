@@ -141,7 +141,7 @@ class roulette(selector):
             p[i] = p[i] / sum
         index = np.random.choice(range(len(population)), size=self.n, replace=False, p=p)
         selected = population[index]
-        print(f"selected: {selected}")
+        # print(f"selected: {selected}")
         return selected[np.random.randint(0, len(selected))]  # Selecciona un único individuo de los seleccionados
     # Falta medir la convergencia
 
