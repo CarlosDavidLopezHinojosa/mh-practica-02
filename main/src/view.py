@@ -10,7 +10,8 @@ import functions.mutation as mutate
 import functions.replacement as replace
 
 import tools.utils as utils
-import tools.stats as stats
+import tools.plot as plot
+
 
 
 # ============================
@@ -273,14 +274,13 @@ if "AG" in st.session_state:
 # Ejecutar regresión lineal
 execute_regression()
 
-import plot
 
 op = plot.operator_files
 
 for name, file in op.items():
     figures = plot.process_file(file)
-    for name, fig in figures.items():
-        st.plotly_chart(fig, use_container_width=True)
+    for name2, fig in figures.items():
+        st.plotly_chart(fig, use_container_width=True,key=name+name2)
 
 # Mostrar resultados de la regresión lineal
 if 'RL' in st.session_state:

@@ -4,8 +4,6 @@ import numpy as np
 import tools.utils as utils
 import tools.stats as stats
 
-OUTPUT_FOLDER = "../plots/"
-
 def generate_colors(n):
     """
     Genera una lista de colores únicos para `n` elementos.
@@ -16,63 +14,82 @@ def generate_colors(n):
     """
     return pc.qualitative.Set3[:n] if n <= len(pc.qualitative.Set3) else pc.qualitative.Plotly[:n]
 
+
 def plot_nemenyi(nemenyi_result, labels):
     """
-    Genera un gráfico de Nemenyi interactivo usando Plotly Figure Factory.
+    Genera un gráfico de Nemenyi mejorado con líneas horizontales y etiquetas legibles.
     """
     ranks = np.array(nemenyi_result['ranks'])
     cd = nemenyi_result['critical-distance']
-    
-    # Ordenar los métodos por sus rangos
+
+    # Ordenar algoritmos por rango
     sorted_indices = np.argsort(ranks)
     sorted_ranks = ranks[sorted_indices]
     sorted_labels = np.array(labels)[sorted_indices]
     colors = generate_colors(len(sorted_labels))
 
-    # Crear la figura
     fig = go.Figure()
-    
-    # Agregar puntos para cada método
-    for i, (rank, label) in enumerate(zip(sorted_ranks, sorted_labels)):
-        fig.add_trace(go.Scatter(
-            x=[rank],
-            y=[1],
-            mode='markers+text',
-            text=[label],
-            textposition='top center',
-            marker=dict(size=10, color=colors[i]),
-            name=label
-        ))
-    
-    # Agregar línea horizontal
+
+    # Dibujar línea base de rango
     fig.add_trace(go.Scatter(
         x=[min(sorted_ranks) - cd, max(sorted_ranks) + cd],
-        y=[1, 1],
+        y=[-1, -1],
         mode='lines',
         line=dict(color='gray', dash='dash'),
         showlegend=False
     ))
-    
-    # Dibujar el Critical Difference (CD)
+
+    # Dibujar barra de Critical Distance (CD)
     fig.add_trace(go.Scatter(
         x=[min(sorted_ranks), min(sorted_ranks) + cd],
-        y=[1.2, 1.2],
+        y=[-0.5, -0.5],
         mode='lines+text',
         text=[f"CD = {cd:.2f}", ""],
         textposition='top center',
         line=dict(color='red', width=2),
         showlegend=False
     ))
-    
-    # Configuración del gráfico
+
+    # Agregar líneas y etiquetas para cada algoritmo
+    for i, (rank, label) in enumerate(zip(sorted_ranks, sorted_labels)):
+        y_pos = i  # Posición vertical única por los operadores
+        fig.add_trace(go.Scatter(
+            x=[rank],
+            y=[y_pos],
+            mode='markers+text',
+            marker=dict(size=10, color=colors[i]),
+            text=[label],
+            textposition='middle right',
+            name=label,
+            showlegend=False
+        ))
+
+        # Línea horizontal para mostrar el rango en el eje x
+        fig.add_trace(go.Scatter(
+            x=[0, rank],
+            y=[y_pos, y_pos],
+            mode='lines',
+            line=dict(color='lightgray', width=1),
+            showlegend=False
+        ))
+
+    # Ajustar layout
     fig.update_layout(
-        title='Gráfico de Nemenyi',
+        # title='Diagrama de Nemenyi mejorado',
         xaxis_title='Rango promedio',
-        yaxis=dict(showticklabels=False, showgrid=False),
+        yaxis=dict(
+            tickmode='array',
+            tickvals=list(range(len(sorted_labels))),
+            ticktext=sorted_labels,
+            showgrid=False,
+            zeroline=False,
+            autorange='reversed'  # para que el mejor esté arriba
+        ),
         xaxis=dict(showgrid=True),
-        plot_bgcolor='white'
+        plot_bgcolor='white',
+        height=40 * len(sorted_labels) + 100
     )
-    
+
     return fig
 
 
@@ -125,7 +142,7 @@ def plot_bonferroni(bonferroni_results, labels=None, alpha=0.05):
     # Configuración final del layout
     fig.update_layout(
         title="P-valores Ajustados (Bonferroni) One vs All",
-        xaxis_title="Algoritmo",
+        xaxis_title="Operador",
         yaxis_title="P-valor ajustado",
         yaxis=dict(range=[0, max(max(adjusted_pvalues), alpha) * 1.1]),
         plot_bgcolor='white'
@@ -133,46 +150,60 @@ def plot_bonferroni(bonferroni_results, labels=None, alpha=0.05):
     
     return fig
 
+
 def plot_times(data, labels=None):
     """
-    Genera un gráfico de barras interactivo para los tiempos de ejecución de diferentes algoritmos.
+    Genera un gráfico de barras interactivo para los tiempos de ejecución de diferentes algoritmos,
+    adaptando la unidad a micro/mili/segundos según corresponda.
     
     Args:
         data (np.array): Datos organizados con forma (algorithms, cases).
-        labels (list, opcional): Lista de nombres para los algoritmos. Si no se provee, se usan índices.
+        labels (list, opcional): Nombres para los algoritmos.
     
     Returns:
-        fig (go.Figure): Figura interactiva con el gráfico de barras.
+        fig (go.Figure): Figura interactiva del gráfico.
     """
-    # Calcular el tiempo promedio por algoritmo
     mean_times = np.mean(data, axis=1)
+    max_time = np.max(mean_times)
     
-    # Definir etiquetas para los algoritmos
+    # Decidir unidad de tiempo adecuada
+    if max_time < 1e-3:
+        scale = 1e6
+        unit = "μs"
+    elif max_time < 1:
+        scale = 1e3
+        unit = "ms"
+    else:
+        scale = 1
+        unit = "s"
+
+    # Etiquetas
     n_algorithms = len(mean_times)
     if labels is None:
         labels = [f'Algoritmo {i}' for i in range(n_algorithms)]
     colors = generate_colors(n_algorithms)
 
-    # Crear el gráfico de barras
+    # Crear gráfico
     fig = go.Figure()
     for i, (label, time) in enumerate(zip(labels, mean_times)):
+        scaled_time = time * scale
         fig.add_trace(go.Bar(
             x=[label],
-            y=[time],
-            text=[f"{time:.2f}"],
+            y=[scaled_time],
+            text=[f"{scaled_time:.2f} {unit}"],
             textposition='auto',
             marker_color=colors[i],
             name=label
         ))
 
-    # Configuración final del layout
+    # Layout
     fig.update_layout(
-        title="Tiempos de Ejecución Promedio por Algoritmo",
-        xaxis_title="Algoritmo",
-        yaxis_title="Tiempo (s)",
+        # title="Tiempos de Ejecución Promedio por los operadores",
+        xaxis_title="Operador",
+        yaxis_title=f"Tiempo ({unit})",
         plot_bgcolor='white'
     )
-    
+
     return fig
 
 def plot_memory(data, labels=None):
@@ -186,7 +217,7 @@ def plot_memory(data, labels=None):
     Returns:
         fig (go.Figure): Figura interactiva con el gráfico de barras.
     """
-    # Calcular el uso promedio de memoria por algoritmo
+    # Calcular el uso promedio de memoria por los operadores
     mean_memory = np.mean(data, axis=1)
     
     # Definir etiquetas para los algoritmos
@@ -209,9 +240,9 @@ def plot_memory(data, labels=None):
 
     # Configuración final del layout
     fig.update_layout(
-        title="Uso Promedio de Memoria por Algoritmo",
-        xaxis_title="Algoritmo",
-        yaxis_title="Memoria (MB)",
+        # title="Uso Promedio de Memoria por los operadores",
+        xaxis_title="Operador",
+        yaxis_title="Memoria (bytes)",
         plot_bgcolor='white'
     )
     
@@ -229,7 +260,7 @@ def plot_convergences(data, labels=None):
     Returns:
         fig (go.Figure): Figura interactiva con el gráfico de líneas.
     """
-    # Calcular la convergencia promedio por algoritmo
+    # Calcular la convergencia promedio por los operadores
     mean_convergences = np.mean(data, axis=1)
     
     # Definir etiquetas para los algoritmos
@@ -254,7 +285,7 @@ def plot_convergences(data, labels=None):
 
     # Configuración final del layout
     fig.update_layout(
-        title="Convergencias por Algoritmo",
+        # title="Convergencias por los operadores",
         xaxis_title="Generación",
         yaxis_title="Convergencia",
         plot_bgcolor='white'
@@ -272,32 +303,50 @@ def process_file(file_path):
     labels = list(data.keys())
 
     # Ajustar el tamaño de los datos para que todos tengan la misma longitud
-    size = min([len(data[label]['convergences']) for label in labels])
-    times = [data[label]['time'][:size] for label in labels]
-    memory = [data[label]['memory'][:size] for label in labels]
+    size = 100
     convergences = [data[label]['convergences'][:size] for label in labels]
 
-    # Generar gráficos
-    fig_times = plot_times(np.array(times), labels)
+    size = min([len(data[label]['convergences']) for label in labels])
 
-    fig_memory = plot_memory(np.array(memory), labels)
+    clipped_times = [data[label]['time'][:size] for label in labels]
+    clipped_memory = [data[label]['memory'][:size] for label in labels]
+    clipped_convergences = [data[label]['convergences'][:size] for label in labels]
+
+    # Generar gráficos
+    fig_times = plot_times(np.array(clipped_times), labels)
+
+    fig_memory = plot_memory(np.array(clipped_memory), labels)
 
     fig_convergences = plot_convergences(np.array(convergences), labels)
 
-    nemenyi_result = stats.nemenyi(np.array(convergences))
-    fig_nemenyi = plot_nemenyi(nemenyi_result, labels)
+
+
+    if stats.statistical_test(np.array(clipped_convergences),0.05)['reject']:
+        nemenyi_result_convergences = stats.nemenyi(np.array(convergences))
+        fig_nemenyi_convergences = plot_nemenyi(nemenyi_result_convergences, labels)
+
+    if stats.statistical_test(np.array(clipped_memory),0.05)['reject']:
+        nemenyi_result_memory = stats.nemenyi(np.array(clipped_memory))
+        fig_nemenyi_memory = plot_nemenyi(nemenyi_result_memory, labels)
+
+    if stats.statistical_test(np.array(clipped_times),0.05)['reject']:
+        nemenyi_result_times = stats.nemenyi(np.array(clipped_times))
+        fig_nemenyi_times = plot_nemenyi(nemenyi_result_times, labels)
 
     return {
         "times": fig_times,
         "memory": fig_memory,
         "convergences": fig_convergences,
-        "nemenyi": fig_nemenyi
+        "nemenyitimes": fig_nemenyi_times,
+        "nemenyimemory": fig_nemenyi_memory,
+        "nemenyiconvergences": fig_nemenyi_convergences,
     }
 
 
 operator_files = {
-    "selectors": "info/selectors.json",
-    "crossings": "info/crossings.json",
-    "mutations": "info/mutations.json",
-    "replacements": "info/replacements.json"
+    "selectors": "main/info/selectors.json",
+    "crossings": "main/info/crossings.json",
+    "mutations": "main/info/mutations.json",
+    "replacements": "main/info/replacements.json"
 }
+

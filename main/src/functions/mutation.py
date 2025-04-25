@@ -148,7 +148,7 @@ class polinomica(mutator):
             memstart()
             start = instant()
         mutation_mask = np.random.random(individual.shape) < mutation_rate
-        individual[mutation_mask] = np.random.pareto(1.5, np.count_nonzero(mutation_mask))
+        individual[mutation_mask] = np.random.pareto(5, np.count_nonzero(mutation_mask))
         if self.mode:
             self.measures['time'].append(instant() - start)
             self.measures['memory'].append(memory())

@@ -8,7 +8,7 @@ import functions.replacement as replace
 import functions.selection as select
 
 
-SAVEPATH = "info/"
+SAVEPATH = "main/info/"
 BESTALGCONFIG = utils.best_algorithm_config(mode=True)
 
 def measure_selectors():
@@ -83,5 +83,5 @@ def measure_replacements():
 if __name__ == "__main__":
     # measure_selectors()
     # measure_crossings()
-    # measure_mutations()
-    measure_replacements()
+    measure_mutations()
+    # measure_replacements()
