@@ -261,6 +261,9 @@ def plot_convergences(data, labels=None):
         fig (go.Figure): Figura interactiva con el gráfico de líneas.
     """
     # Calcular la convergencia promedio por los operadores
+    if data.size == 0 or len(data.shape) != 2:
+        raise ValueError("Los datos de convergencia no tienen el formato esperado. Asegúrate de que sean un array bidimensional.")
+    
     mean_convergences = np.mean(data, axis=1)
     
     # Definir etiquetas para los algoritmos
