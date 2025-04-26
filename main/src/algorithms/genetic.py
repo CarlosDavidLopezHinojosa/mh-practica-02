@@ -79,14 +79,12 @@ def genetic_function_optimization(island: np.array, pop_size: int,
         del new_island
 
 
-def parallelize(evolver: callable, num_islands: int, pop_size: int, generations: int,
-                num_coef: int, select: callable, cross: callable, mutate: callable,
-                replace: callable, fitness: callable) -> dict:
+def parallelize(evolver, num_islands, pop_size, generations,
+                num_coef, select, cross, mutate, replace, fitness):
     """
-    Paraleliza la ejecución del modelo de islas utilizando `ProcessPoolExecutor`.
-
+    Ejecuta la función evolver en paralelo para cada isla.
     Args:
-        evolver (callable): Función que implementa la lógica de evolución para una isla.
+        evolver (callable): Función evolver que se ejecutará en paralelo.
         num_islands (int): Número de islas a crear.
         pop_size (int): Tamaño de la población en cada isla.
         generations (int): Número de generaciones a ejecutar en cada isla.
@@ -96,36 +94,18 @@ def parallelize(evolver: callable, num_islands: int, pop_size: int, generations:
         mutate (callable): Función de mutación que modifica un individuo.
         replace (callable): Función de reemplazo que actualiza la población con la nueva generación.
         fitness (callable): Función de fitness que evalúa la calidad de un individuo.
-
     Returns:
         dict: Diccionario con:
             - 'coefficients': El mejor individuo encontrado entre todas las islas.
             - 'error': El valor de fitness del mejor individuo.
-
-    Notas:
-        - Utiliza `ProcessPoolExecutor` para ejecutar la evolución de cada isla en paralelo.
-        - Maneja excepciones en los procesos paralelos e imprime errores si ocurren.
-        - Libera memoria explícitamente utilizando `gc.collect()` después de procesar cada futuro.
     """
+    
     solution = None
-    with futures.ProcessPoolExecutor(max_workers=num_islands) as executor:
-        # Crear una lista de futuros para ejecutar la evolución en paralelo
-        futures_list = [
-            executor.submit(evolver, utils.population(pop_size, num_coef), pop_size, generations,
-                            select, cross, mutate, replace, fitness) for _ in range(num_islands)
-        ]
-        for future in futures.as_completed(futures_list):
-            try:
-                # Obtener el resultado del futuro
-                result = future.result()
-                if solution is None or result['error'] < solution['error']:
-                    solution = result
-            except Exception as e:
-                print(f"Error: {e}")
-            finally:
-                # Forzar la recolección de basura
-                gc.collect()
-
+    for _ in range(num_islands):
+        result = evolver(utils.population(pop_size, num_coef), pop_size, generations,
+                         select, cross, mutate, replace, fitness)
+        if solution is None or result['error'] < solution['error']:
+            solution = result
     return solution
 
 

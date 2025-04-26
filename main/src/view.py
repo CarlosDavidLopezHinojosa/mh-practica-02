@@ -35,22 +35,28 @@ def configure_algorithm():
     # Operadores genéticos
     st.subheader("Operadores Genéticos")
 
+    # Opción para ejecución en paralelo
+    config["parallel"] = st.checkbox("Ejecutar en paralelo", value=False)
+
+    # Opción para medir convergencia
+    config["measure_convergence"] = st.checkbox("Medir convergencia de los operadores", value=False)
+
     # Selección
     st.markdown("#### Operadores de selección")
     selection_method = st.selectbox("Método de Selección", list(select.selections().keys()))
     selection = select.selections()[selection_method]
     if selection_method == "Torneo Binario":
         k = st.number_input("Número de individuos para el torneo (k)", min_value=2, max_value=config["pop_size"], value=2, step=1)
-        selection = selection(k, utils.fitness)
+        selection = selection(k, utils.fitness, config["measure_convergence"])
     elif selection_method == "Ruleta":
         n = st.number_input("Número de individuos para la selección (n)", min_value=2, max_value=config["pop_size"], value=2, step=1)
-        selection = selection(n, utils.fitness)
+        selection = selection(n, utils.fitness, config["measure_convergence"])
     elif selection_method == "Emparejamiento variado inverso":
         k = st.number_input("Número de individuos para la selección (k)", min_value=2, max_value=config["pop_size"], value=2, step=1)
-        selection = selection(k, utils.fitness)
+        selection = selection(k, utils.fitness, config["measure_convergence"])
     elif selection_method == "Aleatorio":
         n = st.number_input("Número de individuos a seleccionar", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        selection = selection(n, utils.fitness)
+        selection = selection(n, utils.fitness, config["measure_convergence"])
     else:
         selection = selection()
     config["selection"] = selection
@@ -58,7 +64,7 @@ def configure_algorithm():
     # Cruce
     st.markdown("#### Operadores de cruce")
     crossover_method = st.selectbox("Método de Cruce", list(cross.crossings().keys()))
-    config["crossover"] = cross.crossings()[crossover_method](utils.fitness)
+    config["crossover"] = cross.crossings()[crossover_method](utils.fitness, config["measure_convergence"])
 
     # Mutación
     st.markdown("#### Operadores de mutación")
@@ -66,9 +72,9 @@ def configure_algorithm():
     mutation = mutate.mutations()[mutation_method]
     if mutation_method == "Mutación Gaussiana":
         sigma = st.number_input("Desviación estándar", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
-        mutation = mutation(sigma, utils.fitness)
+        mutation = mutation(sigma, utils.fitness, config["measure_convergence"])
     else:
-        mutation = mutation(utils.fitness) # Clase por defecto sin parametros
+        mutation = mutation(utils.fitness, config["measure_convergence"]) # Clase por defecto sin parametros
 
     config["mutation"] = mutation
     # config["mutation_rate"] = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
@@ -79,17 +85,17 @@ def configure_algorithm():
     replacement = replace.replacements()[replacement_method]
 
     if replacement_method == "Reemplazar al peor de la población":
-        replacement = replacement(utils.fitness)
+        replacement = replacement(utils.fitness, config["measure_convergence"])
     elif replacement_method == "Torneo restringido":
         n = st.number_input("Número de individuos para el torneo (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        replacement = replacement(n, utils.fitness)
+        replacement = replacement(n, utils.fitness, config["measure_convergence"])
     elif replacement_method == "Peor entre semejantes":
         n = st.number_input("Número de individuos más parecidos entre los que reemplazar (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        replacement = replacement(n, utils.fitness)
+        replacement = replacement(n, utils.fitness, config["measure_convergence"])
     elif replacement_method == "Elitismo":
-        replacement = replacement(utils.fitness)
+        replacement = replacement(utils.fitness, config["measure_convergence"])
     else:
-        replacement = replacement(utils.fitness)
+        replacement = replacement(utils.fitness, config["measure_convergence"])
 
     config["replacement"] = replacement
 
@@ -107,13 +113,40 @@ def execute_genetic_algorithm(config):
     if st.button("Ejecutar Algoritmo"):
         st.subheader("Ejecución del Algoritmo")
         with st.spinner("Ejecutando el modelo de islas..."):
-            result = gnc.island_optimization(
-                config["num_islands"], config["pop_size"], config["generations"], config["num_coef"],
-                config["selection"], config["crossover"], config["mutation"],
-                config["replacement"], utils.fitness
-            )
+            
+            # Si 'parallel' es True, ejecutar en paralelo usando island_optimization
+            if config["parallel"]:
+                result = gnc.island_optimization(
+                    config["num_islands"], config["pop_size"], config["generations"], config["num_coef"],
+                    config["selection"], config["crossover"], config["mutation"],
+                    config["replacement"], utils.fitness
+                )
+            else:
+                # Si 'parallel' es False, ejecutar de manera secuencial usando genetic_function_optimization
+                result = gnc.genetic_function_optimization(
+                    utils.population(config["pop_size"], config["num_coef"]),
+                    config["pop_size"], config["generations"],
+                    config["selection"], config["crossover"],
+                    config["mutation"], config["replacement"], utils.fitness
+                )
+            
             st.success("Optimización completada.")
             st.session_state['AG'] = result
+
+            # Mostrar los modos de los operadores
+            st.write("Selector mode:", config["selection"].mode)
+            st.write("Crosser mode:", config["crossover"].mode)
+            st.write("Mutator mode:", config["mutation"].mode)
+            st.write("Replacer mode:", config["replacement"].mode)
+
+            # Mostrar las medidas de convergencia si se habilita en la configuración
+            if config["measure_convergence"]:
+                st.subheader("Medidas de convergencia")
+                st.write("Convergencia de selección:", config["selection"].measures['convergences'])
+                st.write("Convergencia de cruce:", config["crossover"].measures['convergences'])
+                st.write("Convergencia de mutación:", config["mutation"].measures['convergences'])
+                st.write("Convergencia de reemplazo:", config["replacement"].measures['convergences'])
+
             return result
     return None
 
