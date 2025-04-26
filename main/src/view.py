@@ -10,8 +10,7 @@ import functions.mutation as mutate
 import functions.replacement as replace
 
 import tools.utils as utils
-import tools.plot as plot
-
+import tools.stats as stats
 
 
 # ============================
@@ -33,11 +32,6 @@ def configure_algorithm():
     config["generations"] = st.number_input("Número de Generaciones", min_value=1, max_value=1000, value=100, step=10)
     config["num_coef"] = 8
 
-    # Opción para medir convergencia
-    st.subheader("Medición de Convergencia")
-    measure_convergence = st.checkbox("¿Medir convergencia de los operadores genéticos?")
-    config["measure_convergence"] = measure_convergence
-
     # Operadores genéticos
     st.subheader("Operadores Genéticos")
 
@@ -47,24 +41,24 @@ def configure_algorithm():
     selection = select.selections()[selection_method]
     if selection_method == "Torneo Binario":
         k = st.number_input("Número de individuos para el torneo (k)", min_value=2, max_value=config["pop_size"], value=2, step=1)
-        selection = selection(k, utils.fitness, mode=measure_convergence)
+        selection = selection(k, utils.fitness)
     elif selection_method == "Ruleta":
         n = st.number_input("Número de individuos para la selección (n)", min_value=2, max_value=config["pop_size"], value=2, step=1)
-        selection = selection(n, utils.fitness, mode=measure_convergence)
+        selection = selection(n, utils.fitness)
     elif selection_method == "Emparejamiento variado inverso":
         k = st.number_input("Número de individuos para la selección (k)", min_value=2, max_value=config["pop_size"], value=2, step=1)
-        selection = selection(k, utils.fitness, mode=measure_convergence)
+        selection = selection(k, utils.fitness)
     elif selection_method == "Aleatorio":
         n = st.number_input("Número de individuos a seleccionar", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        selection = selection(n, utils.fitness, mode=measure_convergence)
+        selection = selection(n, utils.fitness)
     else:
-        selection = selection(mode=measure_convergence)
+        selection = selection()
     config["selection"] = selection
 
     # Cruce
     st.markdown("#### Operadores de cruce")
     crossover_method = st.selectbox("Método de Cruce", list(cross.crossings().keys()))
-    config["crossover"] = cross.crossings()[crossover_method](utils.fitness, mode=measure_convergence)
+    config["crossover"] = cross.crossings()[crossover_method](utils.fitness)
 
     # Mutación
     st.markdown("#### Operadores de mutación")
@@ -72,11 +66,12 @@ def configure_algorithm():
     mutation = mutate.mutations()[mutation_method]
     if mutation_method == "Mutación Gaussiana":
         sigma = st.number_input("Desviación estándar", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
-        mutation = mutation(sigma, utils.fitness, mode=measure_convergence)
+        mutation = mutation(sigma, utils.fitness)
     else:
-        mutation = mutation(utils.fitness, mode=measure_convergence)
+        mutation = mutation(utils.fitness) # Clase por defecto sin parametros
 
     config["mutation"] = mutation
+    # config["mutation_rate"] = st.number_input("Tasa de mutación", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
 
     # Reemplazo
     st.markdown("#### Operadores de reemplazo")
@@ -84,17 +79,17 @@ def configure_algorithm():
     replacement = replace.replacements()[replacement_method]
 
     if replacement_method == "Reemplazar al peor de la población":
-        replacement = replacement(utils.fitness, mode=measure_convergence)
+        replacement = replacement(utils.fitness)
     elif replacement_method == "Torneo restringido":
         n = st.number_input("Número de individuos para el torneo (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        replacement = replacement(n, utils.fitness, mode=measure_convergence)
+        replacement = replacement(n, utils.fitness)
     elif replacement_method == "Peor entre semejantes":
         n = st.number_input("Número de individuos más parecidos entre los que reemplazar (n)", min_value=1, max_value=config["pop_size"], value=1, step=1)
-        replacement = replacement(n, utils.fitness, mode=measure_convergence)
+        replacement = replacement(n, utils.fitness)
     elif replacement_method == "Elitismo":
-        replacement = replacement(utils.fitness, mode=measure_convergence)
+        replacement = replacement(utils.fitness)
     else:
-        replacement = replacement(utils.fitness, mode=measure_convergence)
+        replacement = replacement(utils.fitness)
 
     config["replacement"] = replacement
 
@@ -112,24 +107,12 @@ def execute_genetic_algorithm(config):
     if st.button("Ejecutar Algoritmo"):
         st.subheader("Ejecución del Algoritmo")
         with st.spinner("Ejecutando el modelo de islas..."):
-            # Pasar measure_convergence a la función gnc.island_optimization
             result = gnc.island_optimization(
                 config["num_islands"], config["pop_size"], config["generations"], config["num_coef"],
                 config["selection"], config["crossover"], config["mutation"],
-                config["replacement"], utils.fitness, measure_convergence=config["measure_convergence"]
+                config["replacement"], utils.fitness
             )
             st.success("Optimización completada.")
-            
-            # Asegurarse de que "convergences" esté en el resultado
-            if config["measure_convergence"]:
-                if "convergences" not in result:
-                    result["convergences"] = {
-                        "selection": config["selection"].measures.get("convergences", []),
-                        "crossover": config["crossover"].measures.get("convergences", []),
-                        "mutation": config["mutation"].measures.get("convergences", []),
-                        "replacement": config["replacement"].measures.get("convergences", [])
-                    }
-            
             st.session_state['AG'] = result
             return result
     return None
@@ -200,16 +183,6 @@ def display_results(result):
 
         st.subheader("Gráfica de la función ajustada")
         plot_function(coeffs)
-
-        if "convergences" in result:
-            st.subheader("Gráfico de Convergencia")
-            st.write("Datos de convergencia:", result["convergences"])  # Depuración
-            labels = ["Selección", "Cruce", "Mutación", "Reemplazo"]
-            fig = plot.plot_convergences(np.array(result["convergences"]), labels)
-            st.plotly_chart(fig)
-        else:
-            st.warning("No se encontraron datos de convergencia.")
-
 
 def execute_regression():
     """
@@ -299,14 +272,6 @@ if "AG" in st.session_state:
 
 # Ejecutar regresión lineal
 execute_regression()
-
-
-op = plot.operator_files
-
-for name, file in op.items():
-    figures = plot.process_file(file)
-    for name2, fig in figures.items():
-        st.plotly_chart(fig, use_container_width=True,key=name+name2)
 
 # Mostrar resultados de la regresión lineal
 if 'RL' in st.session_state:
