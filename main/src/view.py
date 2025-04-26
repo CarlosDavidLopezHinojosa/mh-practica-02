@@ -12,6 +12,11 @@ import functions.replacement as replace
 import tools.utils as utils
 import tools.stats as stats
 
+import tools.plot as plot
+from deap import base, creator, tools, algorithms
+import time
+import random
+
 
 # ============================
 # Funciones auxiliares
@@ -147,6 +152,23 @@ def execute_genetic_algorithm(config):
                 st.write("Convergencia de mutación:", config["mutation"].measures['convergences'])
                 st.write("Convergencia de reemplazo:", config["replacement"].measures['convergences'])
 
+                # Mostrar gráficos de convergencia si se habilita
+                convergences_data = [
+                    config["selection"].measures['convergences'],
+                    config["crossover"].measures['convergences'],
+                    config["mutation"].measures['convergences'],
+                    config["replacement"].measures['convergences'],
+                ]
+                labels = ["Selección", "Cruce", "Mutación", "Reemplazo"]
+
+                try:
+                    fig = plot.plot_convergences(np.array(convergences_data, dtype=object), labels)
+                    st.subheader("Gráfica de convergencia de los operadores")
+                    st.plotly_chart(fig)
+                except Exception as e:
+                    st.error(f"Error generando la gráfica de convergencias: {e}")
+
+
             return result
     return None
 
@@ -272,6 +294,81 @@ def compare_results(ag_result, regression_result):
         plot_predictions(reg_predictions, y)
 
 
+def deap_genetic_algorithm(config):
+    # Crear el problema de minimización
+    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+    creator.create("Individual", list, fitness=creator.FitnessMin)
+
+    # Definir toolbox
+    toolbox = base.Toolbox()
+    toolbox.register("attribute", random.uniform, -1, 1)  # Rango inicial de genes
+    toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attribute, n=config["num_coef"])
+    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+
+    # Fitness function igual que tu 'utils.fitness'
+    def evaluate(individual):
+        return utils.fitness(np.array(individual)),
+
+    toolbox.register("evaluate", evaluate)
+    toolbox.register("mate", tools.cxBlend, alpha=0.5)
+    toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.1, indpb=0.2)
+    toolbox.register("select", tools.selTournament, tournsize=3)
+
+    # Crear la población
+    pop = toolbox.population(n=config["pop_size"])
+
+    # Ejecutar algoritmo
+    start = time.time()
+    hof = tools.HallOfFame(1)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
+    stats.register("min", np.min)
+    stats.register("avg", np.mean)
+
+    algorithms.eaSimple(pop, toolbox,
+                        cxpb=0.5, mutpb=0.2,
+                        ngen=config["generations"],
+                        stats=stats, halloffame=hof,
+                        verbose=False)
+    end = time.time()
+
+    best = hof[0]
+    return {
+        'coefficients': np.array(best),
+        'error': utils.fitness(np.array(best)),
+        'time': end - start
+    }
+
+
+
+def plot_comparison(result_own, result_deap):
+    """
+    Muestra un gráfico de barras comparando los resultados de ambos algoritmos.
+    
+    Args:
+        result_own (dict): Resultados de tu algoritmo (ej. error, fitness).
+        result_deap (dict): Resultados del algoritmo DEAP (ej. error, fitness).
+    """
+    # Suponemos que ambos resultados tienen un campo 'error' o 'fitness'
+    error_own = result_own['error'] if 'error' in result_own else None
+    error_deap = result_deap['error'] if 'error' in result_deap else None
+
+    # Crear el gráfico de barras para la comparación
+    fig = go.Figure(data=[
+        go.Bar(name='Tu Algoritmo', x=['Error'], y=[error_own], marker=dict(color='blue')),
+        go.Bar(name='DEAP Algoritmo', x=['Error'], y=[error_deap], marker=dict(color='orange'))
+    ])
+
+    # Configuración del gráfico
+    fig.update_layout(
+        title="Comparación de Errores entre Algoritmos",
+        xaxis_title="Algoritmo",
+        yaxis_title="Error",
+        barmode='group',  # Agrupar las barras
+        plot_bgcolor='white'
+    )
+
+    return fig
+
 # ============================
 # Ejecución principal
 # ============================
@@ -313,3 +410,26 @@ if 'RL' in st.session_state:
 # Comparar resultados
 if "AG" in st.session_state and "RL" in st.session_state:
     compare_results(st.session_state['AG'], st.session_state['RL'])
+
+
+# Comparar resultados con el algoritmo DEAP
+if "AG" in st.session_state:
+    result_own = st.session_state['AG']
+else:
+    result_own = None  # Si no existe, se asigna None
+
+result_deap = deap_genetic_algorithm(config)
+
+st.subheader("Comparación de Resultados")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.write("🚀 Tu Algoritmo")
+    if result_own:
+        st.write(result_own)
+    else:
+        st.write("Aún no has ejecutado tu algoritmo.")
+        
+with col2:
+    st.write("DEAP Algoritmo")
+    st.write(result_deap)

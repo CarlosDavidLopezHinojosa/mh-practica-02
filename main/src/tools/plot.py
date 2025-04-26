@@ -264,6 +264,18 @@ def plot_convergences(data, labels=None):
     if data.size == 0 or len(data.shape) != 2:
         raise ValueError("Los datos de convergencia no tienen el formato esperado. Asegúrate de que sean un array bidimensional.")
     
+    # Determinar la longitud de la lista más corta (de reemplazo)
+    min_length = min(len(convergence) for convergence in data)
+    
+    # Recortar las listas más largas para que todas tengan la misma longitud
+    for i, convergence in enumerate(data):
+        if len(convergence) > min_length:
+            data[i] = convergence[:min_length]
+        elif len(convergence) < min_length:
+            # Rellenar las listas más cortas con NaN
+            data[i] = np.pad(convergence, (0, min_length - len(convergence)), constant_values=np.nan)
+    
+    # Calcular la convergencia promedio por los operadores
     mean_convergences = np.mean(data, axis=1)
     
     # Definir etiquetas para los algoritmos
@@ -288,12 +300,12 @@ def plot_convergences(data, labels=None):
 
     # Configuración final del layout
     fig.update_layout(
-        # title="Convergencias por los operadores",
         xaxis_title="Generación",
         yaxis_title="Convergencia",
         plot_bgcolor='white'
     )
     return fig
+
 
 def process_file(file_path):
     """

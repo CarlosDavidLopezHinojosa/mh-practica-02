@@ -5,3 +5,4 @@ matplotlib
 watchdog
 plotly
 scikit-optimize
+deap
