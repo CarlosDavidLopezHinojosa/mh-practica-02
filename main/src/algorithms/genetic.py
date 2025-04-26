@@ -130,57 +130,33 @@ def parallelize(evolver: callable, num_islands: int, pop_size: int, generations:
 
 
 @utils.measure
-def island_optimization(num_islands, pop_size, generations, num_coef, selection, crossover, mutation, replacement, fitness, measure_convergence=False):
+def island_optimization(num_islands: int, pop_size: int, generations: int, num_coef: int,
+                        select: callable, cross: callable, mutate: callable, # mutation_rate: float,
+                        replace: callable, fitness: callable) -> dict:
     """
-    Implementación del modelo de islas para el algoritmo genético.
+    Ejecuta el modelo de islas y mide el tiempo y el uso de memoria.
+
     Args:
-        num_islands (int): Número de islas.
-        pop_size (int): Tamaño de la población por isla.
-        generations (int): Número de generaciones.
-        num_coef (int): Número de coeficientes a optimizar.
-        selection (callable): Operador de selección.
-        crossover (callable): Operador de cruce.
-        mutation (callable): Operador de mutación.
-        replacement (callable): Operador de reemplazo.
-        fitness (callable): Función de fitness.
-        measure_convergence (bool): Si se debe medir la convergencia de los operadores genéticos.
+        num_islands (int): Número de islas a crear.
+        pop_size (int): Tamaño de la población en cada isla.
+        generations (int): Número de generaciones a ejecutar en cada isla.
+        num_coef (int): Número de coeficientes (genes) por individuo.
+        select (callable): Función de selección que elige individuos para reproducirse.
+        cross (callable): Función de cruce que genera descendencia a partir de dos padres.
+        mutate (callable): Función de mutación que modifica un individuo.
+        replace (callable): Función de reemplazo que actualiza la población con la nueva generación.
+        fitness (callable): Función de fitness que evalúa la calidad de un individuo.
+
     Returns:
-        dict: Resultados del algoritmo genético.
+        dict: Diccionario con:
+            - 'coefficients': El mejor individuo encontrado entre todas las islas.
+            - 'error': El valor de fitness del mejor individuo.
+            - 'time': Tiempo total de ejecución.
+            - 'memory': Uso máximo de memoria durante la ejecución.
+
+    Notas:
+        - Utiliza el decorador `@utils.measure` para medir el tiempo y el uso de memoria.
+        - Es la interfaz principal para ejecutar el modelo de islas.
     """
-    # Ejecutar el modelo de islas en paralelo
-    solution = parallelize(
-        genetic_function_optimization,
-        num_islands,
-        pop_size,
-        generations,
-        num_coef,
-        selection,
-        crossover,
-        mutation,
-        replacement,
-        fitness
-    )
-
-    # Extraer los mejores coeficientes y el error
-    best_coefficients = solution["coefficients"]
-    best_error = solution["error"]
-
-    # Crear el resultado final
-    result = {
-        "coefficients": best_coefficients,
-        "error": best_error,
-        "memory": utils.memory(),
-        "time": utils.instant(),
-    }
-
-    # Agregar convergencias si están habilitadas
-    if measure_convergence:
-        if measure_convergence:
-            result["convergences"] = [
-            selection.measures["convergences"],
-            crossover.measures["convergences"],
-            mutation.measures["convergences"],
-            replacement.measures["convergences"]
-]
-
-    return result
+    return parallelize(genetic_function_optimization, num_islands, pop_size,
+                       generations, num_coef, select, cross, mutate, replace, fitness)
