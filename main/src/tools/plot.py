@@ -325,7 +325,7 @@ def process_file(file_path):
 
 
     if stats.statistical_test(np.array(clipped_convergences),0.05)['reject']:
-        nemenyi_result_convergences = stats.nemenyi(np.array(convergences))
+        nemenyi_result_convergences = stats.nemenyi(np.array(clipped_convergences))
         fig_nemenyi_convergences = plot_nemenyi(nemenyi_result_convergences, labels)
 
     if stats.statistical_test(np.array(clipped_memory),0.05)['reject']:
