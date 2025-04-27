@@ -11,6 +11,7 @@ import functions.replacement as replace
 
 import tools.utils as utils
 import tools.stats as stats
+import tools.plot as plot
 
 
 # ============================
@@ -67,6 +68,9 @@ def configure_algorithm():
     if mutation_method == "Mutación Gaussiana":
         sigma = st.number_input("Desviación estándar", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
         mutation = mutation(sigma, utils.fitness)
+
+    elif mutation_method == "Mutación No Uniforme":
+       mutation = mutation(config['generations'], utils.fitness)
     else:
         mutation = mutation(utils.fitness) # Clase por defecto sin parametros
 
@@ -280,3 +284,12 @@ if 'RL' in st.session_state:
 # Comparar resultados
 if "AG" in st.session_state and "RL" in st.session_state:
     compare_results(st.session_state['AG'], st.session_state['RL'])
+SAVEPATH = "main/info/"
+
+figs = plot.process_file(SAVEPATH + "mutations.json")
+
+print(figs)
+
+for name, fig in figs.items():
+    st.subheader(name)
+    st.plotly_chart(fig, use_container_width=True)

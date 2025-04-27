@@ -274,6 +274,7 @@ def plot_convergences(data, labels=None):
 
     # Crear el gráfico de líneas
     fig = go.Figure()
+    
     for i, (label, convergence) in enumerate(zip(labels, data)):
         fig.add_trace(go.Scatter(
             x=np.arange(len(convergence)),
@@ -352,4 +353,3 @@ operator_files = {
     "mutations": "main/info/mutations.json",
     "replacements": "main/info/replacements.json"
 }
-

@@ -51,6 +51,9 @@ def measure_mutations():
         config = BESTALGCONFIG.copy()
         if name != "Mutación Gaussiana":
             config['mutate'] = mutation(utils.fitness, True)
+
+        if name == "Mutación No Uniforme":
+            config['mutate'] = mutation(config["generations"],config["fitness"], True)
             
         print("Midiendo:", name)
         _ = ag.genetic_function_optimization(utils.population(config["pop_size"], 8),
@@ -83,5 +86,6 @@ def measure_replacements():
 if __name__ == "__main__":
     # measure_selectors()
     # measure_crossings()
-    measure_mutations()
+    # measure_mutations()
     # measure_replacements()
+    pass

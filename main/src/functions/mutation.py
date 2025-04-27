@@ -89,36 +89,49 @@ class uniform(mutator):
 
 class non_uniform(mutator):
     """
-    Mutación no uniforme.
-    Esta clase implementa la mutación no uniforme, donde cada gen del individuo
-    tiene una probabilidad `mutation_rate` de ser mutado. La mutación se realiza
-    reemplazando el gen por un valor aleatorio entre 0 y 1, pero con una distribución
-    no uniforme.
-    Args:
-        mutation_rate (float): Probabilidad de mutación por gen. Por defecto, 0.1.
+    Mutación no uniforme adaptada para coeficientes pequeños.
+    Usa una distribución normal escalada y suaviza la decaimiento.
     """
-    def __init__(self, fitness, mode = False):
+    def __init__(self, max_gen, fitness, mode=False):
         super().__init__(fitness, mode)
+        self.max_gen = max_gen
+        self.current_gen = 0
+        self.sigma = 0.01  # Controla magnitud máxima inicial
+        self.decay_rate = 2  # Controla ritmo de decaimiento (2-5)
 
-    def __call__(self, individual: np.ndarray, mutation_rate) -> np.ndarray:
-        """
-        Mutación no uniforme utilizando numpy.
-        Args:
-            individual (np.ndarray): Individuo a mutar.
-            mutation_rate (float): Probabilidad de mutación por gen.
-        Returns:
-            np.ndarray: Individuo mutado.
-        """
+    def __call__(self, individual: np.ndarray, mutation_rate: float) -> np.ndarray:
         if self.mode:
             memstart()
             start = instant()
+
         mutation_mask = np.random.random(individual.shape) < mutation_rate
-        individual[mutation_mask] = np.random.normal(0.5, 0.2, np.count_nonzero(mutation_mask))
+        t = self.current_gen / self.max_gen
+        
+        # Calcular factor de decaimiento no lineal
+        decay_factor = (1 - t)**self.decay_rate
+        
+        # Generar mutaciones con distribución normal escalada
+        deltas = np.random.normal(
+            scale=self.sigma * decay_factor,
+            size=individual.shape
+        )
+        
+        direction = np.random.choice([-1, 1], size=individual.shape)
+        deltas = deltas * direction
+        # Aplicar mutaciones solo donde el mask es True
+        individual[mutation_mask] += deltas[mutation_mask]
+        
+        # Suavizar el clipping para no perder información
+        individual = np.clip(individual, -5.0, 5.0)  # Asumiendo rango [-1,1]
+        
+        self.current_gen += 1
+
         if self.mode:
             self.measures['time'].append(instant() - start)
             self.measures['memory'].append(memory())
             memstop()
             self.measures['convergences'].append(float(self.fitness(individual)))
+        
         return individual
     
 
@@ -148,7 +161,9 @@ class polinomica(mutator):
             memstart()
             start = instant()
         mutation_mask = np.random.random(individual.shape) < mutation_rate
-        individual[mutation_mask] = np.random.pareto(5, np.count_nonzero(mutation_mask))
+        direction = np.random.choice([-1, 1], size=individual.shape)
+        pareto = np.random.pareto(4.7, np.count_nonzero(mutation_mask))
+        individual[mutation_mask] += pareto * direction[mutation_mask]
         if self.mode:
             self.measures['time'].append(instant() - start)
             self.measures['memory'].append(memory())
