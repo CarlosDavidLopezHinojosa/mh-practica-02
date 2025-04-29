@@ -1,7 +1,6 @@
 numpy
 scipy
 streamlit
-matplotlib
 watchdog
 plotly
 scikit-optimize
