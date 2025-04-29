@@ -1,91 +1,63 @@
-# MH Práctica 2: Optimización Genética con Modelo de Islas
+# Práctica 02 - Metaheurísticas
 
-Este proyecto implementa un algoritmo genético basado en el modelo de islas para resolver problemas de optimización. El objetivo principal es encontrar los coeficientes que mejor se ajusten a un conjunto de datos, minimizando el error cuadrático medio (MSE). Además, se incluye una comparación con un modelo de regresión lineal tradicional.
+Este repositorio contiene el código para la práctica 02 de la asignatura de Metaheurísticas. El objetivo es implementar y comparar algoritmos genéticos para resolver problemas de optimización.
 
-## Características
+## Estructura del Repositorio
 
-- **Modelo de Islas**: Paralelización del algoritmo genético en múltiples islas.
-- **Operadores Genéticos**: Métodos configurables de selección, cruce, mutación y reemplazo.
-- **Visualización**: Gráficas interactivas para analizar los resultados.
-- **Comparación**: Evaluación del rendimiento frente a un modelo de regresión lineal.
+- **`src/`**: Contiene el código fuente principal.
+  - **`algorithms/`**: Implementaciones de algoritmos genéticos y de regresión.
+  - **`functions/`**: Operadores genéticos como selección, cruce, mutación y reemplazo.
+  - **`tools/`**: Utilidades, estadísticas y generación de gráficos.
+  - **`scripts/`**: Scripts para medir y optimizar configuraciones.
+  - **`view.py`**: Interfaz gráfica basada en Streamlit.
+- **`requirements.txt`**: Lista de dependencias necesarias para ejecutar el proyecto.
+- **`start.sh`**: Script para configurar el entorno y ejecutar la aplicación.
+- **`end.sh`**: Script para limpiar el entorno de trabajo.
 
-## Requisitos
+## Dependencias
 
-Asegúrate de tener instaladas las siguientes dependencias. Puedes instalarlas ejecutando:
-
-```bash
-pip install -r requirements.txt
-```
-
-### Dependencias
+El proyecto utiliza las siguientes dependencias, que se encuentran listadas en `requirements.txt`:
 
 - `numpy`
 - `scipy`
-- `scikit-posthocs`
 - `streamlit`
-- `matplotlib`
 - `watchdog`
+- `plotly`
+- `scikit-optimize`
 
-## Estructura del Proyecto
+## Pasos para Iniciar la Práctica
 
-```
-metaheuristicas/mh-practica-02/
-├── src/
-│   ├── main/
-│   │   ├── algorithms/
-│   │   │   ├── genetic.py          # Implementación del modelo de islas
-│   │   │   ├── regression.py       # Ajuste de regresión polinómica
-│   │   ├── functions/
-│   │   │   ├── selection.py        # Métodos de selección
-│   │   │   ├── crossing.py         # Métodos de cruce
-│   │   │   ├── mutation.py         # Métodos de mutación
-│   │   │   ├── replacement.py      # Métodos de reemplazo
-│   │   ├── tools/
-│   │   │   ├── utils.py            # Funciones auxiliares
-│   │   │   ├── stats.py            # Pruebas estadísticas
-│   │   ├── view.py                 # Interfaz de usuario con Streamlit
-│   ├── __init__.py
-├── requirements.txt                # Dependencias del proyecto
-├── start.sh                        # Script para iniciar la aplicación
-├── .gitignore                      # Archivos ignorados por Git
-└── README.md                       # Documentación del proyecto
-```
 
-## Uso
+1. **Configurar el Entorno Virtual**  
+   Ejecute el script `start.sh` para crear un entorno virtual, instalar las dependencias y ejecutar la aplicación:
+   ```bash
+   ./start.sh
+   ```
 
-### Ejecutar la Aplicación
+2. **Abrir la Interfaz**  
+   La interfaz gráfica se abrirá automáticamente en su navegador. Si no ocurre, acceda manualmente a `http://localhost:8501`.
 
-Para iniciar la interfaz de usuario, ejecuta el siguiente comando en la terminal:
+3. **Configurar y Ejecutar el Algoritmo**  
+   - Configure los parámetros del algoritmo genético, como tamaño de población, generaciones y operadores genéticos.
+   - Ejecute el algoritmo genético o comparelo con un modelo de regresión lineal.
 
-```bash
-bash start.sh
-```
+4. **Limpiar el Entorno**  
+   Una vez finalizada la práctica, ejecute el script `end.sh` para limpiar los archivos temporales y el entorno virtual:
+   ```bash
+   ./end.sh
+   ```
 
-Esto configurará un entorno virtual, instalará las dependencias y ejecutará la aplicación en Streamlit.
+## Interfaz Gráfica
 
-### Configuración del Algoritmo
+La interfaz gráfica está implementada en `src/view.py` utilizando Streamlit. Permite:
 
-En la barra lateral de la aplicación, puedes configurar los siguientes parámetros:
+- Configurar parámetros del algoritmo genético.
+- Seleccionar operadores genéticos (selección, cruce, mutación, reemplazo).
+- Ejecutar el modelo de islas o un algoritmo genético estándar.
+- Comparar los resultados con un modelo de regresión lineal.
 
-- **Número de Islas**: Define cuántas islas se utilizarán en el modelo.
-- **Tamaño de la Población por Isla**: Número de individuos en cada isla.
-- **Número de Generaciones**: Cantidad de iteraciones del algoritmo.
-- **Operadores Genéticos**: Métodos de selección, cruce, mutación y reemplazo.
+## Notas Adicionales
 
-### Resultados
-
-La aplicación muestra:
-
-1. **Coeficientes Encontrados**: Los valores óptimos obtenidos por el algoritmo genético.
-2. **MSE**: Error cuadrático medio del modelo.
-3. **Gráficas**:
-   - Comparación entre predicciones y valores reales.
-   - Representación de la función ajustada.
-
-### Comparación con Regresión Lineal
-
-Puedes ejecutar un modelo de regresión lineal para comparar su rendimiento con el algoritmo genético. La aplicación mostrará los coeficientes ajustados, el MSE y las gráficas correspondientes.
-
-## Advertencia
-
-El algoritmo genético puede ser intensivo en recursos. Configura los parámetros con cuidado para evitar un uso excesivo de memoria o tiempo de ejecución prolongado.
+- Los datos de entrada se encuentran en `tools/utils.py` y se pueden modificar según sea necesario.
+- Los resultados se visualizan en gráficos interactivos generados con Plotly.
+- Consulte los scripts en `src/scripts/` para medir el rendimiento de los operadores genéticos.
