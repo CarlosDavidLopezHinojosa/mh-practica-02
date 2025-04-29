@@ -25,7 +25,7 @@ def optimize_genetic_algorithm():
         # Integer(1, 2,name='num_islands'),  # Número de islas
         Integer(10, 200, name='pop_size'),  # Tamaño de la población
         Integer(10, 500, name='generations'),  # Número de generaciones
-        Categorical(['Torneo Binario', 'Aleatorio', 'Ruleta', 'Emparejamiento Variado Inverso'], name='selection_method'),
+        Categorical(['Torneo', 'Aleatorio', 'Ruleta', 'Emparejamiento Variado Inverso'], name='selection_method'),
         Categorical(['Cruce Aritmético', 'Cruce de Un Punto', 'Cruce Uniforme', 'Cruce BLX'], name='crossover_method'),
         Categorical(['Mutación Gaussiana', 'Mutación uniforme', 'Mutación no uniforme', 'Mutación Polinómica'], name='mutation_method'),
         Categorical(['Reemplazo Generacional Completo', 'Reemplazar al peor de la población','Torneo restringido', 'Peor entre semejantes', 'Elitismo'], name='replacement_method'),
@@ -59,7 +59,7 @@ def optimize_genetic_algorithm():
 
             # Configurar los operadores según los parámetros
             selection = select.selections()[params['selection_method']]
-            if params['selection_method'] == 'Torneo Binario':
+            if params['selection_method'] == 'Torneo':
                 selection = selection(min(params['tournament_k'], params['pop_size']), fitness)
             elif params['selection_method'] == 'Aleatorio' or params['selection_method'] == 'Ruleta' or params['selection_method'] == 'Emparejamiento Variado Inverso':
                 selection = selection(min(params['selection_n'], params['pop_size']), fitness)

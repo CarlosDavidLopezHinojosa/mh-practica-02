@@ -67,7 +67,7 @@ def genetic_function_optimization(island: np.array, pop_size: int,
             # Reemplazo de la población
             replace(island, new_island)
             # Actualizar la diversidad
-            mutation_rate = diversity(island)
+            mutation_rate = 1 - diversity(island)
             # print(mutation_rate)
 
         # Encontrar el mejor individuo
@@ -130,7 +130,7 @@ def parallelize(evolver: callable, num_islands: int, pop_size: int, generations:
 
 
 @utils.measure
-def island_optimization(num_islands, pop_size, generations, num_coef, selection, crossover, mutation, replacement, fitness, measure_convergence=False):
+def island_optimization(num_islands, pop_size, generations, num_coef, selection, crossover, mutation, replacement, fitness):
     """
     Implementación del modelo de islas para el algoritmo genético.
     Args:
@@ -143,12 +143,11 @@ def island_optimization(num_islands, pop_size, generations, num_coef, selection,
         mutation (callable): Operador de mutación.
         replacement (callable): Operador de reemplazo.
         fitness (callable): Función de fitness.
-        measure_convergence (bool): Si se debe medir la convergencia de los operadores genéticos.
     Returns:
         dict: Resultados del algoritmo genético.
     """
     # Ejecutar el modelo de islas en paralelo
-    solution = parallelize(
+    return parallelize(
         genetic_function_optimization,
         num_islands,
         pop_size,
@@ -160,27 +159,3 @@ def island_optimization(num_islands, pop_size, generations, num_coef, selection,
         replacement,
         fitness
     )
-
-    # Extraer los mejores coeficientes y el error
-    best_coefficients = solution["coefficients"]
-    best_error = solution["error"]
-
-    # Crear el resultado final
-    result = {
-        "coefficients": best_coefficients,
-        "error": best_error,
-        "memory": utils.memory(),
-        "time": utils.instant(),
-    }
-
-    # Agregar convergencias si están habilitadas
-    if measure_convergence:
-        if measure_convergence:
-            result["convergences"] = [
-            selection.measures["convergences"],
-            crossover.measures["convergences"],
-            mutation.measures["convergences"],
-            replacement.measures["convergences"]
-]
-
-    return result

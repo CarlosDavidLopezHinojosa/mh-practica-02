@@ -17,8 +17,8 @@ class selector:
 
 class tournament(selector):
     """
-    Selección por torneo binario.
-    Esta clase implementa la selección por torneo binario, donde se seleccionan
+    Selección por torneo.
+    Esta clase implementa la selección por torneo, donde se seleccionan
     `k` individuos aleatorios de la población y se elige el mejor de ellos.
     El mejor individuo se selecciona utilizando una función de fitness proporcionada.
     Args:
@@ -30,7 +30,7 @@ class tournament(selector):
 
     def select(self, population: np.array) -> np.array:
         """
-        Selección por torneo binario.
+        Selección por torneo.
         Args:
             population (np.ndarray): Población actual (matriz de individuos).
         Returns:
@@ -224,7 +224,7 @@ class inverse_matching(selector):
 def selections():
     return {
         "Aleatorio": random,
-        "Torneo Binario": tournament,
+        "Torneo": tournament,
         "Ruleta": roulette,
         "Emparejamiento variado inverso": inverse_matching
     }

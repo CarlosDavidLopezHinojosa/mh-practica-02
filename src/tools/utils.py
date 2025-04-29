@@ -74,7 +74,7 @@ def data(compact: bool = False, lower: int = 0, upper: int = 15) -> np.array:
         [-1.99, 0.4626335969]
     ])
 
-    np.random.shuffle(data)
+    # np.random.shuffle(data)
 
     if compact:
         return data[lower:upper]
@@ -216,6 +216,10 @@ def load(filename):
     """
     with open(filename, 'r') as f:
         return json.load(f)
+
+
+def clipping_size(data: np.array):
+    return min([len(i) for i in data])
 
 def best_algorithm_config(mode: bool = False):
     """
